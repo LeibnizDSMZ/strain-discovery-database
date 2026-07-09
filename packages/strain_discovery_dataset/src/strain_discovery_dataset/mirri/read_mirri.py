@@ -11,7 +11,7 @@ _HEADERS = {"Accept": "application/links+json"}
 async def mirri_get_all() -> AsyncGenerator[dict[str, Any]]:
     page = 1
     seen_ids = set()
-    page_size = 1000
+    page_size = 500
     params = {
         "page": 1,
         "pageSize": page_size,
