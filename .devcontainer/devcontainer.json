@@ -1,0 +1,32 @@
+{
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "streetsidesoftware.code-spell-checker",
+        "oderwat.indent-rainbow",
+        "yzhang.markdown-all-in-one",
+        "christian-kohler.path-intellisense",
+        "Gruntfuggly.todo-tree",
+        "aaron-bond.better-comments",
+        "tamasfe.even-better-toml",
+        "ms-python.python",
+        "meta.pyrefly"
+      ]
+    }
+  },
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "dev.docker-compose.yml"
+  ],
+  "initializeCommand": "if [ ! -f .env ]; then cat package.env > .env; fi",
+  "name": "strain_discovery_database",
+  "postAttachCommand": "make dev",
+  "runServices": [
+    "dev",
+    "mongo"
+  ],
+  "service": "dev",
+  "shutdownAction": "stopCompose",
+  "updateRemoteUserUID": true,
+  "workspaceFolder": "/workspace"
+}

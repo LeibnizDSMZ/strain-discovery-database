@@ -1,0 +1,57 @@
+[project]
+variant = "classic"
+site_name = "Strain Discovery Database"
+site_description = "Strain Discovery Database"
+site_author = "Bioindustry 4.0 WP6"
+site_dir = "public/docs"
+docs_dir = "packages/strain_discovery_docs/src"
+use_directory_urls = true
+copyright = "Copyright &copy; 2026 Leibniz Institute DSMZ-German Collection of Microorganisms and Cell Cultures GmbH, Maintained by the WP6 Team of the <a href='https://www.bioindustry4.eu/'>Bioindustry 4.0 project</a>"
+language = "en"
+repo_name = "LeibnizDSMZ/strain-discovery-database"
+repo_url = "https://github.com/LeibnizDSMZ/strain-discovery-database"
+repo_license = "MIT"
+
+[project.theme]
+features = [
+    "header.autohide"
+]
+font = false
+
+[project.theme.palette]
+primary = "custom"
+accent = "custom"
+
+[project.markdown_extensions.pymdownx.snippets]
+
+[project.markdown_extensions.pymdownx.inlinehilite]
+
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+
+[project.markdown_extensions.pymdownx.superfences]
+
+[project.markdown_extensions.toc]
+toc_depth = 0
+
+[project.plugins.mkdocstrings.handlers.python]
+inventories = ["https://docs.python.org/3/objects.inv"]
+paths = ["packages/pkg1/src", "packages/shared_utils/src"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "google"
+inherited_members = true
+show_source = false
+show_submodules = true
+
+[[project.nav]]
+"Data Model" = "data_model.md"
+
+[[project.nav]]
+"Python project" = "structure.md"
+
+[[project.nav]]
+Configuration = "config.md"
+
+[[project.nav]]
+License = "license.md"

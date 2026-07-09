@@ -1,0 +1,82 @@
+services:
+  app:
+    secrets:
+      - mongo_sdd_password
+      - lpsn_password
+      - env_file
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      secrets:
+        - env_file
+      args:
+        USERNAME: devu
+        USER_UID: 1000
+        USER_GID: 10500
+        WORK_DIR: "/workspace"
+        BIN_DEPLOY_PREP: ${BIN_DEPLOY_PREP}
+        BIN_DEPLOY_REQ: ${BIN_DEPLOY_REQ}
+    volumes:
+      - mongo-sock:/mongo
+      - sdd-data:/data
+    environment:
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_SOCKET: ${MONGO_SOCKET}
+      MONGO_SDD_USER: ${MONGO_SDD_USER}
+      MONGO_SDD_PASSWORD_FILE: /run/secrets/mongo_sdd_password
+      MONGO_SDD_DATABASE: ${MONGO_SDD_DATABASE}
+      MONGO_SDD_COLLECTION: ${MONGO_SDD_COLLECTION}
+      LPSN_USER: ${LPSN_USER}
+      LPSN_PASSWORD_FILE: /run/secrets/lpsn_password
+    depends_on:
+      mongo:
+        condition: service_healthy
+  mongo:
+        build:
+            context: .
+            dockerfile: ./configs/docker/mongo.Dockerfile
+            args:
+                USER_GID: 10500
+        restart: always
+        secrets:
+            - mongo_sdd_password
+        healthcheck:
+            test:
+                [
+                    'CMD',
+                    'mongosh',
+                    '--eval',
+                    "db.runCommand('ping').ok",
+                    'localhost:${MONGO_PORT}/test',
+                    '--quiet',
+                ]
+            interval: 15s
+            timeout: 6s
+            retries: 10
+        environment:
+            MONGODB_INITDB_ROOT_USERNAME: ${MONGODB_INITDB_ROOT_USERNAME:-root}
+            MONGODB_INITDB_ROOT_PASSWORD: ${MONGODB_INITDB_ROOT_PASSWORD:-password2202}
+            MONGO_SDD_USER: ${MONGO_SDD_USER}
+            MONGO_SDD_PASSWORD_FILE: /run/secrets/mongo_sdd_password
+            MONGO_SDD_DATABASE: ${MONGO_SDD_DATABASE}
+            MONGO_PORT: ${MONGO_PORT}
+            INIT_MONGO_CONFIG: /etc/mongod.conf
+        volumes:
+            - mongo-data:/data/db
+            - mongo-sock:/socket
+        ports:
+            - ${MONGO_PORT}:${MONGO_PORT}
+
+secrets:
+    mongo_sdd_password:
+        environment: MONGO_SDD_PASSWORD
+    lpsn_password:
+        environment: LPSN_PASSWORD
+    env_file:
+        file: ./.env
+
+volumes:
+    mongo-data:
+    mongo-sock:
+    sdd-data:

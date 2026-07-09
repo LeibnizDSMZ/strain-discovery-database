@@ -1,0 +1,31 @@
+[project]
+name = "strain_discovery_dataset"
+version = "0.1.0"
+description = """This project creates a dataset based on the microbial strain data standard."""
+readme = "README.md"
+authors = [{ name = "Julius Witte" },{ name = "Artur Lissin", email = "artur.lissin@dsmz.de" },]
+requires-python = ">=3.13,<4"
+dependencies = [
+    "pymongo ==4.3.3",
+    "deepdiff >=9.0.0,<10",
+    "httpx ==0.28.1",
+    "pydantic >=2.13,<3",
+    "saim @ git+https://github.com/LeibnizDSMZ/saim.git@v0.11.0",
+    "microbial_strain_data_model @ git+https://github.com/LeibnizDSMZ/microbial-data-standard.git@v0.12.8#subdirectory=packages/microbial_strain_data_model",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["strain_discovery_dataset"]
+
+[build-system]
+requires = ["uv_build>=0.11.26,<0.12.4"]
+build-backend = "uv_build"
+
+[tool.uv]
+package = true
+default-groups = []
+
+[project.scripts]
+create_database = "strain_discovery_dataset.create_database:main"
+create_statistics = "strain_discovery_dataset.create_statistics:main"

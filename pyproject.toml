@@ -1,0 +1,220 @@
+[project]
+name = "strain_discovery_database"
+version = "0.1.0"
+description = """This project defines a new microbial strain data standard for all data describing a microbial strain."""
+readme = "README.md"
+authors = [{ name = "Julius Witte" }, { name = "Artur Lissin", email = "artur.lissin@dsmz.de" },]
+license = "MIT"
+requires-python = ">=3.13,<4"
+
+[tool.uv]
+exclude-newer = "3 days"
+package = false
+default-groups = ["mono"]
+
+[tool.setuptools]
+py-modules = []
+
+[tool.uv.sources]
+strain_discovery_dataset = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/*"]
+exclude = [
+  "packages/strain_discovery_docs"
+]
+
+[dependency-groups]
+mono = [
+  # local
+  "strain_discovery_dataset",
+]
+dev = [
+  "commitizen ==4.16.4",
+  "pyrefly ==1.1.1",
+  "ruff ==0.15.20",
+  "shellcheck-py ==0.11.0.1",
+  "pre-commit-hooks ==6.0.0",
+  # license
+  "reuse ==6.2.0",
+  # commit hooks
+  "lefthook ==2.1.9",
+  # types
+]
+test = ["coverage ==7.14.3", "pytest ==9.1.1", "tox ==4.56.1"]
+docs = [
+  "zensical ==0.0.46",
+  "mkdocstrings-python ==2.0.5",
+  "griffe_pydantic ==1.3.1"
+]
+
+[tool.commitizen]
+major_version_zero = true
+name = "cz_conventional_commits"
+tag_format = "v$version"
+update_changelog_on_bump = true
+version_files = [
+  "README.md:^\\[!\\[release:",
+  "packages/strain_discovery_dataset/pyproject.toml",
+  "packages/strain_discovery_docs/package.json",
+]
+version_provider = "uv"
+version_type = "semver"
+
+[tool.pyrefly]
+preset = "strict"
+project-includes = [
+  "packages/**/*.py",
+]
+
+project-excludes = [
+  "**/__pycache__/**",
+  "**/.tox/**",
+  "**/.venv/**",
+  "**/build/**",
+  "**/dist/**",
+  "configs/**",
+]
+search-path = [
+  "packages/strain_discovery_dataset/src",
+]
+python-version = "3.13"
+python-platform = "linux"
+skip-interpreter-query = false
+check-unannotated-defs = true
+infer-return-types = "checked"
+
+[tool.pyrefly.errors]
+bad-return = true
+bad-assignment = false
+implicit-any = false
+unsupported-operation = true
+unused-ignore = true
+
+[tool.ruff]
+line-length = 90
+target-version = "py313"
+exclude = [
+  ".git",
+  ".ruff_cache",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "__pycache__",
+  "build",
+  "dist",
+  "venv"
+]
+
+[tool.ruff.lint]
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+fixable = [
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "I",
+  "N",
+  "Q",
+  "S",
+  "T",
+  "W",
+  "ANN",
+  "ARG",
+  "BLE",
+  "COM",
+  "DJ",
+  "DTZ",
+  "EM",
+  "ERA",
+  "EXE",
+  "FBT",
+  "ICN",
+  "INP",
+  "ISC",
+  "NPY",
+  "PD",
+  "PGH",
+  "PIE",
+  "PL",
+  "PT",
+  "PTH",
+  "PYI",
+  "RET",
+  "RSE",
+  "RUF",
+  "SIM",
+  "SLF",
+  "TCH",
+  "TID",
+  "TRY",
+  "UP",
+  "YTT",
+]
+ignore = [
+  "TRY003",
+  "N818",
+  "N815",
+  "D100",
+  "D101",
+  "D102",
+  "D103",
+  "D104",
+  "D105",
+  "D106",
+  "D107",
+]
+select = ["E", "F", "B", "C90", "S", "PT", "ARG", "PTH", "TRY", "RUF", "N", "D"]
+unfixable = []
+
+[tool.ruff.lint.mccabe]
+max-complexity = 11
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/*" = ["S101"]
+
+[tool.ruff.lint.pylint]
+max-args = 8
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.tox]
+requires = ["tox>=4.23"]
+
+[tool.tox.env_run_base]
+allowlist_externals = ["coverage"]
+set_env = { PYTHONPATH = "packages/strain_discovery_dataset/src" }
+commands = [
+  ["coverage", "erase"],
+  #  [
+  #    "coverage",
+  #    "run",
+  #    "--parallel-mode",
+  #    "-m",
+  #    "pytest",
+  #    "{posargs}",
+  #  ],
+  #  [
+  #    "coverage",
+  #    "combine",
+  #  ],
+  #  [
+  #    "coverage",
+  #    "report",
+  #  ],
+]
+
+[tool.coverage.run]
+source = [
+  "packages/strain_discovery_dataset/src/strain_discovery_dataset",
+]
+parallel = true
+
+[tool.coverage.report]
+show_missing = false
+fail_under = 30

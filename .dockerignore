@@ -1,0 +1,16 @@
+*
+
+!/packages
+
+!/bin
+!/configs
+
+!Makefile
+
+!README.md
+!LICENSE
+!LICENSES
+
+!package.env
+!pyproject.toml
+!uv.lock

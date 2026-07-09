@@ -1,0 +1,2 @@
+
+# Strain Discovery Database - Documentation

@@ -1,0 +1,41 @@
+services:
+  dev:
+    user: devu
+    env_file:
+      - .env
+    environment:
+      HISTFILE: /dev/null
+      HISTSIZE: 0
+      HISTFILESIZE: 0
+      EDITOR: vim
+      SSH_AUTH_SOCK: /ssh-agent
+    build:
+      context: .
+      dockerfile: configs/docker/dev.Dockerfile
+      args:
+        USERNAME: devu
+        USER_UID: 1000
+        USER_GID: 1000
+        SOCKET_GROUP: devu_socket
+        SOCKET_GID: 10500
+        WORK_DIR: "/workspace"
+        UV: ${UV_INSTALL_DIR}
+        SSH_AUTH_SOCK: /ssh-agent
+        BIN_DEPLOY_PREP: ${BIN_DEPLOY_PREP}
+        BIN_DEPLOY_REQ: ${BIN_DEPLOY_REQ}
+    volumes:
+      - ${SSH_AUTH_SOCK:-/dev/null}:/ssh-agent:ro
+      - .:/workspace:cached
+      - ${GITCONFIG_PATH:-${HOME}/.gitconfig}:/etc/gitconfig:ro
+      - mongo-sock:/mongo
+      - sdd-data:/data
+    networks:
+      - ollama
+    ports:
+      - ${DOC_PORT}:8000
+
+networks:
+    ollama:
+        external: true
+        name: ollama
+        driver: bridge
