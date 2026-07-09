@@ -43,7 +43,7 @@ async def _get_bacdive_csv(client: AsyncClient, /) -> str:
 async def bacdive_get_all():
     async with httpx.AsyncClient(timeout=200) as client:
         csv_content = csv.reader(io.StringIO(await _get_bacdive_csv(client)))
-        ids = [row[0] for row in csv_content if row[0].isdigit()]
+        ids = [row[0] for row in csv_content if len(row) > 0 and row[0].isdigit()]
         for req_id in chunked(ids, 20):
             print(f"\r{req_id[0]} - {len(req_id)}{' ' * 10}", end="")
             one_url = f"{_URL}/{';'.join(req_id)}"
