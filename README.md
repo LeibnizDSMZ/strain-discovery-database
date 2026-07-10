@@ -21,7 +21,6 @@ This project provides a robust pipeline for fetching, transforming, matching, an
 - Cleans and standardizes data using source-specific transformation modules
 - Matches strains across sources
 - Stores processed data in MongoDB
-- Configurable via TOML files
 - Logging and error tracking
 
 ## Installation
@@ -29,25 +28,25 @@ This project provides a robust pipeline for fetching, transforming, matching, an
 1. Clone the repository:
 	```bash
 	git clone <repo-url>
-	cd transformation
+	cd strain-discovery-database
 	```
-2. Set up a Python virtual environment (recommended):
+2. Create core config .env:
 	```bash
-	python3 -m venv .venv
-	source .venv/bin/activate
+	cat package.env > .env
 	```
-3. Install dependencies:
-	```bash
-	pip install -e .
-	```
-
-## Configuration
-
-Edit the TOML files in `configs/` to set up credentials, MongoDB connection, and other options. See `docs/config.md` for details.
 
 ## Usage
 
-Run the main pipeline:
-```bash
-python packages/strain_discovery_dataset/src/strain_discovery_dataset/create_database.py
-```
+1. Run the main pipeline:
+	```bash
+	LPSN_PASSWORD=password \
+	LPSN_USER=user@mail.local \
+	MONGO_SDD_PASSWORD=password \
+    docker compose up
+	```
+2. When the database creation is finished:
+	```bash
+    docker exec -it strain-discovery-database-1 bash
+	```
+
+3. The MongoDB can be reached via MONGO_PORT (default: 27372)
