@@ -61,7 +61,7 @@ RUN chown ${USERNAME}:${USERNAME} -R /tmp/build
 
 USER ${USERNAME}
 
-RUN pip3.13 install --no-cache-dir *.whl
+RUN pip install --no-cache-dir *.whl
 
 WORKDIR ${HOME_MAIN}
 
