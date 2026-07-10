@@ -8,7 +8,7 @@
   ],
   "dependencies": {},
   "description": "This package documents the strain discovery database.",
-  "name": "strain_discovery_docs",
+  "name": "strain-discovery-docs",
   "private": true,
   "scripts": {
     "build": "pnpm list --depth 0 --parseable --lockfile-only | grep node_modules | xargs -I {} find {} -type f -name '*.min.js' |  xargs -I {} cp {} \"$EXTRA_JS\""
