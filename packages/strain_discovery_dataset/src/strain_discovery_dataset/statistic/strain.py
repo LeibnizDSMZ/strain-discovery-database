@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Leibniz Institute DSMZ-German Collection of Microorganisms and Cell Cultures GmbH
+#
+# SPDX-License-Identifier: MIT
+
 from strain_discovery_dataset.utils.venn import calculate_venn_stats
 from dataclasses import fields
 from pymongo.collection import Collection

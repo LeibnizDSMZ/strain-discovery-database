@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: 2026 Leibniz Institute DSMZ-German Collection of Microorganisms and Cell Cultures GmbH
+#
+# SPDX-License-Identifier: MIT
+
 rm -f /socket/*
 
 sed "/^net:/,/^[^[:space:]]/ s/^\([[:space:]]*port:\)[[:space:]]*[0-9]\+/\1 $MONGO_PORT/" "$INIT_MONGO_CONFIG" > /tmp/mongod.conf.new

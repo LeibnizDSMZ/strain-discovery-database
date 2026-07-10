@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# SPDX-FileCopyrightText: 2026 Leibniz Institute DSMZ-German Collection of Microorganisms and Cell Cultures GmbH
+#
+# SPDX-License-Identifier: MIT
+
 set -euo pipefail
 ROOT="$(dirname "$(realpath "$0")")/../.."
 source "$ROOT/package.env" || { echo "Error: Failed to source $ROOT/package.env"; exit 1; }
@@ -123,7 +127,7 @@ CC0_FILES=(
     'package\.env$'
     '\.dockerignore$'
     'shellcheckrc$'
-    '\.(md|txt|yaml|yml|json|toml)$'
+    '\.(md|txt|yaml|yml|json|toml|conf)$'
 )
 
 MIT_FILES=(

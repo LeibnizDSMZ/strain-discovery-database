@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Leibniz Institute DSMZ-German Collection of Microorganisms and Cell Cultures GmbH
+#
+# SPDX-License-Identifier: MIT
+
 from strain_discovery_dataset.utils.run import get_log_file
 from microbial_strain_data_model.classes.enums import OrganismType
 from microbial_strain_data_model.classes.enums import SupplyForm

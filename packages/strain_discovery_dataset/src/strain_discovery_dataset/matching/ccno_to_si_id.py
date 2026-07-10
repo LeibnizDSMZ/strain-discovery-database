@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Leibniz Institute DSMZ-German Collection of Microorganisms and Cell Cultures GmbH
+#
+# SPDX-License-Identifier: MIT
+
 from strain_discovery_dataset.utils.lpsn import create_lpsn_config
 from strain_discovery_dataset.utils.run import create_run_config
 import asyncio
