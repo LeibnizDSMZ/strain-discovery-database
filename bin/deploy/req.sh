@@ -9,5 +9,6 @@ dnf -y group install "Development Tools"
 dnf -y install bzip2-devel ncurses-devel libffi-devel \
     readline-devel openssl-devel sqlite-devel tk-devel
 ln -s /usr/bin/python3.13 /usr/bin/python
+ln -s /usr/bin/pip3.13 /usr/bin/pip
 dnf -y install nodejs libatomic
 echo "requirements installed"
