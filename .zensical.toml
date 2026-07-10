@@ -45,7 +45,7 @@ show_source = false
 show_submodules = true
 
 [[project.nav]]
-"Data Model" = "data_model.md"
+"Data Model" = "index.md"
 
 [[project.nav]]
 "Python project" = "structure.md"
