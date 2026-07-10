@@ -79,7 +79,7 @@ runTests:
 	$(UVE) run tox
 
 runBuild:
-	$(UVE) build
+	$(UVE) build --package strain_discovery_dataset
 
 runBump: unstaged
 	$(UVE) run cz bump --files-only --yes --changelog
