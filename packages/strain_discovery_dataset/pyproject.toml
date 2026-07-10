@@ -1,5 +1,5 @@
 [project]
-name = "strain_discovery_dataset"
+name = "strain-discovery-dataset"
 version = "0.1.0"
 description = """This project creates a dataset based on the microbial strain data standard."""
 readme = "README.md"
