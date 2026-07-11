@@ -13,40 +13,77 @@ SPDX-License-Identifier: CC0-1.0
 
 ## Overview
 
-This project provides a robust pipeline for fetching, transforming, matching, and storing microbial strain data from multiple sources (BacDive, MIRRI, DSMZ) into a unified format and loading it into MongoDB. It is designed for research, data integration, and bioinformatics applications.
+This project provides a robust pipeline for fetching, transforming, matching, and storing microbial strain data from multiple sources (**BacDive**, **MIRRI**, **DSMZ**) into a unified format. The processed data is loaded into **MongoDB** for research, data integration, and bioinformatics applications.
+
+> **⚠️ HARDWARE WARNING**  
+> This pipeline is memory-intensive. It is **strongly recommended** to run this on a machine with at least **32GB of RAM**. Running on insufficient memory may cause the container to crash during data processing.
 
 ## Features
 
-- Fetches data from BacDive, MIRRI, and DSMZ
-- Cleans and standardizes data using source-specific transformation modules
-- Matches strains across sources
-- Stores processed data in MongoDB
-- Logging and error tracking
+- 🌐 **Multi-Source Ingestion:** Fetches data from BacDive, MIRRI, and DSMZ.
+- 🧹 **Data Standardization:** Cleans and normalizes data using source-specific transformation modules.
+- 🔗 **Strain Matching:** Identifies and links matching strains across different sources.
+- 🗄️ **MongoDB Storage:** Stores processed, unified data in a NoSQL database.
+- 📝 **Logging:** Comprehensive logging and error tracking for pipeline monitoring.
+
+## Prerequisites
+
+- **Docker** & **Docker Compose** installed
+- **RAM:** Minimum 32GB recommended (depends on data volume)
+- **Disk Space:** Sufficient space for database storage (depends on data volume)
 
 ## Installation
 
-1. Clone the repository:
-	```bash
-	git clone <repo-url>
-	cd strain-discovery-database
-	```
-2. Create core config .env:
-	```bash
-	cat package.env > .env
-	```
+1. **Clone the repository:**
+   ```bash
+   git clone <repo-url>
+   cd strain-discovery-database
+   ```
+
+2. **Initialize Configuration:**
+   Copy the example environment file to create your local configuration.
+   ```bash
+   cp package.env .env
+   ```
+
+3. **Configure Secrets:**
+   Open the `.env` file and fill in the required credentials. **Do not commit this file to version control.**
+   ```bash
+   nano .env
+   # OR
+   vim .env
+   ```
+   *Required variables:* `LPSN_USER`, `LPSN_PASSWORD`, `MONGO_SDD_PASSWORD`, etc.
 
 ## Usage
 
-1. Run the main pipeline:
-	```bash
-	LPSN_PASSWORD=password \
-	LPSN_USER=user@mail.local \
-	MONGO_SDD_PASSWORD=password \
-    docker compose up
-	```
-2. When the database creation is finished:
-	```bash
-    docker exec -it strain-discovery-database-1 bash
-	```
+### 1. Start the Pipeline
 
-3. The MongoDB can be reached via MONGO_PORT (default: 27372)
+Run the Docker Compose stack. This will build the images (if necessary) and start the data ingestion process.
+
+```bash
+docker compose up --build
+```
+
+*Note: If you configured your `.env` file correctly, you do not need to pass passwords via command line arguments.*
+
+### 2. Access the Database
+
+Once the pipeline initialization is complete, the MongoDB service will be running.
+
+**Option A: Access via Container Shell**
+1. Find the running container name:
+   ```bash
+   docker compose ps
+   ```
+2. Execute a bash shell inside the container (replace `<container_name>` with the actual name, e.g., `strain-discovery-database-1`):
+   ```bash
+   docker exec -it <container_name> bash
+   ```
+
+**Option B: Access via External Client (Compass, CLI, etc.)**
+You can connect to the MongoDB instance from your host machine using the exposed port.
+- **Host:** `localhost`
+- **Port:** `27372` (or as defined in `MONGO_PORT`)
+- **Username:** `<MONGO_SDD_USER>`
+- **Password:** `<MONGO_SDD_PASSWORD>`
