@@ -38,6 +38,7 @@ services:
       - sdd-data:/data
     networks:
       - ollama
+      - strain_discovery_network
     ports:
       - ${DOC_PORT}:8000
 

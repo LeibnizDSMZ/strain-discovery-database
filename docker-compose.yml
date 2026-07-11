@@ -38,6 +38,8 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+    networks:
+        - strain_discovery_network
   mongo:
         build:
             context: .
@@ -73,6 +75,8 @@ services:
             - mongo-sock:/socket
         ports:
             - ${MONGO_PORT}:${MONGO_PORT}
+        networks:
+            - strain_discovery_network
 
 secrets:
     mongo_sdd_password:
@@ -86,3 +90,8 @@ volumes:
     mongo-data:
     mongo-sock:
     sdd-data:
+
+networks:
+    strain_discovery_network:
+        name: strain_discovery_network
+        driver: bridge
