@@ -302,7 +302,8 @@ async def match_strains_from_queue(
     ind = 0
     memory = prep_run(None)
     with get_log_file("merge_errors").open("a") as fmc:
-        while (strain := await queue.get()) is not None or none_count != sources:
+        while none_count < sources:
+            strain = await queue.get()
             if strain is None:
                 none_count += 1
                 continue
