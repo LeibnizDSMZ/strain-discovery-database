@@ -7,6 +7,7 @@ from pymongo.collection import Collection
 from pathlib import Path
 import os
 from pymongo import MongoClient
+from urllib.parse import quote_plus
 
 
 def get_mongo_connection(
@@ -38,12 +39,15 @@ def get_mongo_connection(
     if not mongo_database:
         raise ValueError("MONGO_SDD_DATABASE environment variable is required")
 
-    if isinstance(mongo_socket, str) and Path(mongo_socket).is_file():
-        connection_uri = f"mongodb://{mongo_user}:{mongo_password}@{mongo_socket}/"
-        connection_uri += f"{mongo_database}"
+    encoded_user = quote_plus(mongo_user)
+    encoded_password = quote_plus(mongo_password)
+    encoded_db = quote_plus(mongo_database)
+    if isinstance(mongo_socket, str) and Path(mongo_socket).is_socket():
+        connection_uri = f"mongodb://{encoded_user}:{encoded_password}"
+        connection_uri += f"@{quote_plus(mongo_socket)}/{encoded_db}"
     else:
-        connection_uri = f"mongodb://{mongo_user}:{mongo_password}@{mongo_host}:"
-        connection_uri += f"{mongo_port}/{mongo_database}"
+        connection_uri = f"mongodb://{encoded_user}:{encoded_password}"
+        connection_uri += f"@{quote_plus(mongo_host)}:{mongo_port}/{encoded_db}"
 
     client_options = {
         "connectTimeoutMS": connect_timeout,
