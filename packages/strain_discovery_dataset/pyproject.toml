@@ -15,7 +15,7 @@ dependencies = [
     "httpx ==0.28.1",
     "pydantic >=2.13,<3",
     "saim @ git+https://github.com/LeibnizDSMZ/saim.git@v0.11.1",
-    "microbial_strain_data_model @ git+https://github.com/LeibnizDSMZ/microbial-data-standard.git@v0.12.9#subdirectory=packages/microbial_strain_data_model",
+    "microbial_strain_data_model @ git+https://github.com/LeibnizDSMZ/microbial-data-standard.git@v0.12.11#subdirectory=packages/microbial_strain_data_model",
 ]
 
 [tool.setuptools.packages.find]
