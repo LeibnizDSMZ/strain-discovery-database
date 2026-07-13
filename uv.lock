@@ -1578,8 +1578,8 @@ wheels = [
 
 [[package]]
 name = "saim"
-version = "0.11.1"
-source = { git = "https://github.com/LeibnizDSMZ/saim.git?rev=v0.11.1#3335032427fc00e4869fd61a8fd91dac577905b4" }
+version = "0.11.2"
+source = { git = "https://github.com/LeibnizDSMZ/saim.git?rev=v0.11.2#d8a6c9bde3e51342b00a3b3be065543d62bc37c3" }
 dependencies = [
     { name = "cafi" },
     { name = "playwright" },
@@ -1684,7 +1684,7 @@ requires-dist = [
     { name = "microbial-strain-data-model", git = "https://github.com/LeibnizDSMZ/microbial-data-standard.git?subdirectory=packages%2Fmicrobial_strain_data_model&rev=v0.12.11" },
     { name = "pydantic", specifier = ">=2.13,<3" },
     { name = "pymongo", specifier = "==4.3.3" },
-    { name = "saim", git = "https://github.com/LeibnizDSMZ/saim.git?rev=v0.11.1" },
+    { name = "saim", git = "https://github.com/LeibnizDSMZ/saim.git?rev=v0.11.2" },
 ]
 
 [[package]]
