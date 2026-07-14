@@ -36,11 +36,13 @@ services:
       MONGO_SDD_COLLECTION: ${MONGO_SDD_COLLECTION}
       LPSN_USER: ${LPSN_USER}
       LPSN_PASSWORD_FILE: /run/secrets/lpsn_password
+      SDD_UPDATE: ${SDD_UPDATE:-false}
     depends_on:
       mongo:
         condition: service_healthy
     networks:
         - strain_discovery_network
+    restart: "no"
   mongo:
         build:
             context: .

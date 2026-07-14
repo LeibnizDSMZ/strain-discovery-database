@@ -28,6 +28,14 @@ The pipeline relies on environment variables to manage credentials, database con
       - `MONGO_SDD_PASSWORD`
       - `MONGO_PORT`
 
+### 4. **Disable Database Creation**
+
+   Set `SDD_UPDATE=false` to skip database initialization. Use this for:
+
+   - Generating statistics
+   - Analyzing logs with `/evaluate_log.sh`
+
+Default: `false`
 ## Security Best Practices
 
 > **⚠️ CRITICAL SECURITY WARNING**  
