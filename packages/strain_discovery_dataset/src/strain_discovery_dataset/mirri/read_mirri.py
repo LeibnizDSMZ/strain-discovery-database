@@ -19,7 +19,7 @@ async def mirri_get_all() -> AsyncGenerator[dict[str, Any]]:
     params = {
         "page": 1,
         "pageSize": page_size,
-        "sortBy": "creationDate",
+        "sortBy": "id",
         "sortDir": "asc",
     }
 
