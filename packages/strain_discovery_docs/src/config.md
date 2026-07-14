@@ -23,9 +23,10 @@ The pipeline relies on environment variables to manage credentials, database con
    nano .env
    ```
    *Required fields typically include:*
-   - `LPSN_USER` & `LPSN_PASSWORD`
-   - `MONGO_SDD_PASSWORD`
-   - `MONGO_PORT`
+
+      - `LPSN_USER` & `LPSN_PASSWORD`
+      - `MONGO_SDD_PASSWORD`
+      - `MONGO_PORT`
 
 ## Security Best Practices
 
@@ -38,6 +39,7 @@ The pipeline relies on environment variables to manage credentials, database con
 
 ### 2. Shell History
 Avoid passing sensitive credentials directly via command-line arguments, as these are often saved in shell history.
+
 - ✅ **Recommended:** Use the `.env` file.
 - ❌ **Discouraged:** `LPSN_PASSWORD=secret docker compose up --build`
 
