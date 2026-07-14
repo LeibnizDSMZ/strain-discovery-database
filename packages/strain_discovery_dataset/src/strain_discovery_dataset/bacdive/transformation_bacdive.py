@@ -933,7 +933,7 @@ def literature(input_data):
 
 def sequences(input_data):
     seq_in = input_data["Sequence information"]
-    genome_seq = seq_in.get("Genome sequence")
+    genome_seq = seq_in.get("Genome sequences")
     if genome_seq:
         for seq in _as_list(genome_seq):
             yield {
