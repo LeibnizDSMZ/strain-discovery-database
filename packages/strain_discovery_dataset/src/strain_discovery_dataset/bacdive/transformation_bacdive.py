@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Leibniz Institute DSMZ-German Collection of Microorganisms and Cell Cultures GmbH
 #
 # SPDX-License-Identifier: MIT
-
 from strain_discovery_dataset.utils.run import get_log_file
 from requests_cache import Iterable
 
@@ -304,6 +303,7 @@ _ISO_MAPPING = {
 }
 
 _CLEAN_FLOAT = re.compile(r"[\s><]+")
+_ONLY_NUM = re.compile(r"[^\d.]+")
 _CLEAN_PER = re.compile(r"%.*$")
 
 
@@ -422,7 +422,7 @@ def _get_clean_float(value: str | None, index: int) -> None | float:
     try:
         cleaned = _CLEAN_FLOAT.sub("", value)
         parts = cleaned.split("-")
-        return _safe_convert_float(parts[index])
+        return _safe_convert_float(_ONLY_NUM.sub("", parts[index]))
     except IndexError:
         return None
 
