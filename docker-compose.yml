@@ -22,6 +22,7 @@ services:
         BIN_DEPLOY_REQ: ${BIN_DEPLOY_REQ}
         BIN_DEPLOY_HEALTH: ${BIN_DEPLOY_HEALTH}
         BIN_DEPLOY_ENTRY_PROD: ${BIN_DEPLOY_ENTRY_PROD}
+        BIN_EVALUATE_LOG: ${BIN_EVALUATE_LOG}
     volumes:
       - mongo-sock:/mongo
       - sdd-data:/data

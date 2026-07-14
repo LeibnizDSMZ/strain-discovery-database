@@ -33,6 +33,7 @@ ARG USER_GID=${USER_UID}
 ARG HOME_MAIN="/home/${USERNAME}"
 ARG BIN_DEPLOY_ENTRY_PROD
 ARG BIN_DEPLOY_HEALTH
+ARG BIN_EVALUATE_LOG
 
 RUN dnf clean all && dnf install -y bash
 
@@ -54,6 +55,7 @@ COPY ./${BIN_DEPLOY_REQ} /req.sh
 COPY --from=appbuilder /tmp/app/dist /tmp/build
 COPY ./${BIN_DEPLOY_ENTRY_PROD} /entry.sh
 COPY ./${BIN_DEPLOY_HEALTH} /health.sh
+COPY ./${BIN_EVALUATE_LOG} /evaluate_log.sh
 
 WORKDIR /tmp/build
 RUN bash /prep.sh && rm /prep.sh
