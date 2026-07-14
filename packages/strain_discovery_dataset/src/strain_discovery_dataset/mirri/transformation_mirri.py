@@ -4,8 +4,6 @@
 
 from strain_discovery_dataset.utils.run import get_log_file
 from microbial_strain_data_model.classes.enums import OrganismType
-from microbial_strain_data_model.classes.enums import SupplyForm
-from microbial_strain_data_model.classes.enums import Restriction
 import json
 from datetime import datetime
 import re
@@ -547,32 +545,7 @@ _ORG_TYPE = {
     "Yeast": OrganismType.fungi.value,
 }
 
-_SUPPLY = {
-    "Agar": SupplyForm.agar.value,
-    "Cryo": SupplyForm.cryo.value,
-    "Dry Ice": SupplyForm.dry.value,
-    "Liquid Culture Medium": SupplyForm.liquid.value,
-    "Lyo": SupplyForm.lyo.value,
-    "Oil": SupplyForm.oil.value,
-    "Water": SupplyForm.water.value,
-    "DNA": SupplyForm.dna.value,
-}
-
-_RESTRICTIONS = {
-    "no known restriction apply": Restriction.no_restrictions.value,
-    "only for non-commercial purposes": Restriction.no_commercial.value,
-    "for commercial development a special agreement is requested": Restriction.agreement.value,
-}
-
 _STAINING = {"+": "positive", "-": "negative", "-, +": "variable", "-,+": "variable"}
-
-
-def _map_supply_form(original_name):
-    return _SUPPLY.get(original_name, None)
-
-
-def _map_restriction(restriction_text):
-    return _RESTRICTIONS.get(restriction_text.lower(), None)
 
 
 def _fix_date(date):
