@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # SPDX-FileCopyrightText: 2026 Leibniz Institute DSMZ-German Collection of Microorganisms and Cell Cultures GmbH
 #
@@ -6,67 +6,83 @@
 
 set -eu
 
-USER_ARRAY=(
-  "$MONGO_SDD_USER"
-)
+USER_LIST="$MONGO_SDD_USER"
+PASS_LIST=$(tr -d '\n\r' < "$MONGO_SDD_PASSWORD_FILE")
+REQ_DB_LIST="$MONGO_SDD_DATABASE"
 
-PASS_ARRAY=(
-  "$(tr -d '\n' < "$MONGO_SDD_PASSWORD_FILE")"
-)
-
-req_db=(
-  "$MONGO_SDD_DATABASE"
-)
-
-for var in "${USER_ARRAY[@]}" "${PASS_ARRAY[@]}" "${req_db[@]}"; do
-    if [ -z "$var" ]; then
-        echo "Error: Environment variable $var is not set or empty"
-        exit 1
-    fi
+for var_name in $USER_LIST $PASS_LIST $REQ_DB_LIST; do
+  if [ -z "$var_name" ]; then
+    echo "Error: One of the required variables is not set or empty"
+    exit 1
+  fi
 done
 
-if [[ ${#USER_ARRAY[@]} -ne ${#PASS_ARRAY[@]} ]]; then
+user_count=0
+for _ in $USER_LIST; do user_count=$((user_count + 1)); done
+
+pass_count=0
+for _ in $PASS_LIST; do pass_count=$((pass_count + 1)); done
+
+if [ "$user_count" -ne "$pass_count" ]; then
   echo "ERROR: Number of usernames and passwords does not match." >&2
   exit 1
 fi
 
-DB_ARRAY=(
-  "$MONGO_SDD_DATABASE:$MONGO_SDD_USER:w"
-)
+DB_LIST="$MONGO_SDD_DATABASE:$MONGO_SDD_USER:w"
 
-mongosh -u "$MONGODB_INITDB_ROOT_USERNAME" -p "$MONGODB_INITDB_ROOT_PASSWORD" --port "$MONGO_PORT" <<EOF
-$(
+MONGO_SCRIPT=""
+db_entry=""
 
-for db_entry in "${DB_ARRAY[@]}"; do
-  IFS=':' read -r db_name user perm <<< "$db_entry"
+eval set -- "$DB_LIST"
+db_index=0
 
-  if [[ "$perm" = "w" ]]; then
+while [ "$db_index" -lt "$#" ]; do
+  eval db_entry="\$$((db_index + 1))"
+
+  db_name=$(echo "$db_entry" | cut -d':' -f1)
+  user=$(echo "$db_entry" | cut -d':' -f2)
+  perm=$(echo "$db_entry" | cut -d':' -f3)
+
+  role=""
+  if [ "$perm" = "w" ]; then
     role="readWrite"
-  elif [[ "$perm" = "r" ]]; then
+  elif [ "$perm" = "r" ]; then
     role="read"
   else
     echo "Invalid permission '$perm' for database '$db_name'. Skipping." >&2
+    db_index=$((db_index + 1))
     continue
   fi
 
   password=""
-  for ind in "${!USER_ARRAY[@]}"; do
-    if [[ "${USER_ARRAY[$ind]}" = "$user" ]]; then
-      password="${PASS_ARRAY[$ind]}"
+  user_idx=0
+
+  eval set -- "$USER_LIST"
+  for u in "$@"; do
+    if [ "$u" = "$user" ]; then
+      p_idx=0
+      for p in $PASS_LIST; do
+        if [ "$p_idx" -eq "$user_idx" ]; then
+          password="$p"
+          break
+        fi
+        p_idx=$((p_idx + 1))
+      done
       break
     fi
+    user_idx=$((user_idx + 1))
   done
 
-  if [[ "$password" = "" ]]; then
+  if [ -z "$password" ]; then
     echo "No password found for user '$user'. Skipping." >&2
+    db_index=$((db_index + 1))
     continue
   fi
 
-  printf "use %s\ndb.createUser({user:'%s',pwd:'%s',roles:[{role:'%s',db:'%s'}]})\n" \
-    "$db_name" "$user" "$password" "$role" "$db_name"
+  MONGO_SCRIPT="$MONGO_SCRIPT$(printf "use %s\ntry {\n  db.createUser({user:'%s',pwd:'%s',roles:[{role:'%s',db:'%s'}]})\n} catch(e) {\n  if (e.code == 51003) {\n    db.updateUser('%s', {pwd:'%s',roles:[{role:'%s',db:'%s'}]})\n  } else {\n    throw e\n  }\n}\n" \
+    "$db_name" "$user" "$password" "$role" "$db_name" "$user" "$password" "$role" "$db_name")"
 
+  db_index=$((db_index + 1))
 done
 
-)
-
-EOF
+echo "$MONGO_SCRIPT" | mongosh -u "$MONGODB_INITDB_ROOT_USERNAME" -p "$MONGODB_INITDB_ROOT_PASSWORD" --port "$MONGO_PORT"
