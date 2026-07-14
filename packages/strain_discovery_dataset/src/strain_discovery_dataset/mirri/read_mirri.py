@@ -15,25 +15,29 @@ _HEADERS = {"Accept": "application/links+json"}
 async def mirri_get_all() -> AsyncGenerator[dict[str, Any]]:
     page = 1
     seen_ids = set()
-    page_size = 500
+    page_size = 100
     params = {
         "page": 1,
         "pageSize": page_size,
         "sortBy": "id",
         "sortDir": "asc",
     }
-
+    expected_entries = 1
     async with httpx.AsyncClient(timeout=200) as client:
-        while (
-            data := await fetch_with_retry(client, _URL, _HEADERS, params)
-        ) is not None:
+        while page_size * (page - 1) < expected_entries:
+            data = await fetch_with_retry(client, _URL, _HEADERS, params)
+            page += 1
+            params["page"] = page
             if not isinstance(data, dict):
                 print("API response is not 200")
-                yield {"error": f"API response for mirri id {page} is not 200"}
-                break
+                yield {
+                    "error": f"API request for mirri page {page - 1}-{page_size} failed."
+                }
+                continue
             new_items = data.get("items")
+            expected_entries = int(data.get("count", 0))
             if not isinstance(new_items, list):
-                yield {"error": f"API response for mirri id {page} has no items"}
+                yield {"error": f"API response for mirri id {page - 1} has no items"}
                 break
             for item in new_items:
                 item_id = item.get("id")
@@ -44,9 +48,6 @@ async def mirri_get_all() -> AsyncGenerator[dict[str, Any]]:
                     yield item
             if len(new_items) < page_size:
                 break
-
-            page += 1
-            params["page"] = page
 
 
 async def mirri_get_one(strain_id) -> dict | None:
