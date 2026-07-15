@@ -149,7 +149,7 @@ async def _run():
     for task in tasks:
         await task
     # Write matched strains to MongoDB
-    mongo_collection = get_sdd_collection()
+    mongo_collection = get_sdd_collection(True)
 
     for strain in matched_strains.values():
         mongo_collection.insert_one(strain.model_dump(mode="json"))
