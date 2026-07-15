@@ -49,13 +49,19 @@ show_source = false
 show_submodules = true
 
 [[project.nav]]
-"Data Model" = "index.md"
+"The StrainDiscoveryDatabase" = "index.md"
+
+[[project.nav]]
+"Data Model" = "model.md"
 
 [[project.nav]]
 "Python project" = "structure.md"
 
 [[project.nav]]
 Configuration = "config.md"
+
+[[project.nav]]
+Summary = "readme.md"
 
 [[project.nav]]
 License = "license.md"
