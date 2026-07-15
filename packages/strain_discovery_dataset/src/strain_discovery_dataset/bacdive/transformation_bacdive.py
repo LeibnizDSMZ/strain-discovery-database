@@ -939,7 +939,7 @@ def sequences(input_data):
             yield {
                 "type": "nucleotide",
                 "level": "genome",
-                "accessionNumber": get_seq_acc(seq.get("accession")),
+                "accessionNumber": get_seq_acc(seq.get("INSDC accession")),
                 "description": seq.get("description"),
                 "length": get_seq_length(seq.get("length")),
                 "source": ["/sources/0"],
