@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: 2026 Leibniz Institute DSMZ-German Collection of Microor
 SPDX-License-Identifier: CC0-1.0
 -->
 
-[![release: 0.1.0](https://img.shields.io/badge/rel-0.1.0-blue.svg?style=flat-square)](https://github.com/LeibnizDSMZ/strain-discovery-database)
+[![release: 0.2.0](https://img.shields.io/badge/rel-0.2.0-blue.svg?style=flat-square)](https://github.com/LeibnizDSMZ/strain-discovery-database)
 [![MIT LICENSE](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](https://choosealicense.com/licenses/mit/)
 [![Documentation Status](https://img.shields.io/badge/docs-GitHub-blue.svg?style=flat-square)](https://LeibnizDSMZ.github.io/strain-discovery-database/)
 
