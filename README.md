@@ -8,6 +8,11 @@ SPDX-License-Identifier: CC0-1.0
 [![MIT LICENSE](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](https://choosealicense.com/licenses/mit/)
 [![Documentation Status](https://img.shields.io/badge/docs-GitHub-blue.svg?style=flat-square)](https://LeibnizDSMZ.github.io/strain-discovery-database/)
 
+[![main](https://github.com/LeibnizDSMZ/strain-discovery-database/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/LeibnizDSMZ/strain-discovery-database/actions/workflows/main.yml)
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21375664.svg)](https://doi.org/10.5281/zenodo.21375664)
+
+---
 
 # Strain Discovery Database
 
@@ -16,6 +21,7 @@ SPDX-License-Identifier: CC0-1.0
 This project provides a robust pipeline for fetching, transforming, matching, and storing microbial strain data from multiple sources (**BacDive**, **MIRRI**, **DSMZ**) into a unified format. The processed data is loaded into **MongoDB** for research, data integration, and bioinformatics applications.
 
 > **⚠️ HARDWARE WARNING**  
+> ---
 > This pipeline is memory-intensive. It is **strongly recommended** to run this on a machine with at least **32GB of RAM**. Running on insufficient memory may cause the container to crash during data processing.
 
 ## Features
@@ -87,3 +93,10 @@ You can connect to the MongoDB instance from your host machine using the exposed
 - **Port:** `27372` (or as defined in `MONGO_PORT`)
 - **Username:** `<MONGO_SDD_USER>`
 - **Password:** `<MONGO_SDD_PASSWORD>`
+
+
+-----
+
+> ✏️ **Note**:
+> This project uses AI tools for code generation, review, and documentation.
+> All AI-generated content is human-reviewed.

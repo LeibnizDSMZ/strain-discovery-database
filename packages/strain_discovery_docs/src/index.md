@@ -14,7 +14,7 @@ The SDD is utilizing the [Microbial Strain Data Standard](https://leibnizdsmz.gi
 
 - **Dynamic Data Aggregation**: The SDD does not rely on a static, isolated repository. Instead, it systematically retrieves up-to-date phenotypic, genotypic, and contextual data on the fly via public APIs from highly curated databases, including BacDive, MIRRI-IS, and the DSMZ catalogue.
 
-- **Deduplication**: A single microbial strain is frequently deposited in multiple collections under different names. By leveraging the {StrainInfo database API](https://straininfo.dsmz.de/service) and the [SAIM](https://github.com/LeibnizDSMZ/saim/) (Strain Authentication and Identification Methods) library, the SDD accurately resolves synonymous strain identifiers, deduplicates records, and merges disparate knowledge into a single biological entity.
+- **Deduplication**: A single microbial strain is frequently deposited in multiple collections under different names. By leveraging the [StrainInfo database API](https://straininfo.dsmz.de/service) and the [SAIM](https://github.com/LeibnizDSMZ/saim/) (Strain Authentication and Identification Methods) library, the SDD accurately resolves synonymous strain identifiers, deduplicates records, and merges disparate knowledge into a single biological entity.
 
 - **Highly Standardized Output**: All aggregated data is structured into a unified JSON format utilizing the [Microbial Strain Data Standard](https://leibnizdsmz.github.io/microbial-data-standard/) to ensure strict adherence to **FAIR** (Findable, Accessible, Interoperable, and Reusable) data principles.
 
@@ -32,7 +32,7 @@ By bridging isolated database silos and linking distributed knowledge, the SDD p
 
 ## Getting Started with the Code
 
-To start using or building upon the SDD framework, researchers can clone the [Strain Discovery Database repository](https://leibnizdsmz.github.io/strain-discovery-database/). The repository provides the complete, open-source Python pipeline used to fetch, transform, and match the data from the source APIs.
+To start using or building upon the SDD framework, researchers can clone the [Strain Discovery Database repository](https://github.com/LeibnizDSMZ/strain-discovery-database). The repository provides the complete, open-source Python pipeline used to fetch, transform, and match the data from the source APIs.
 
 You can run the pipeline out-of-the-box to recreate the full, up-to-date dataset locally, or you can extend the scripts to integrate your own specialized tools, in-house datasets, and additional web services.
 

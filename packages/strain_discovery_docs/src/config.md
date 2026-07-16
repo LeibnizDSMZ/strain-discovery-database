@@ -35,7 +35,6 @@ The pipeline relies on environment variables to manage credentials, database con
    - Generating statistics
    - Analyzing logs with `/evaluate_log.sh`
 
-Default: `false`
 ## Security Best Practices
 
 > **⚠️ CRITICAL SECURITY WARNING**  
