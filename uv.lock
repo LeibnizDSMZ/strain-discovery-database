@@ -1613,7 +1613,7 @@ wheels = [
 
 [[package]]
 name = "strain-discovery-database"
-version = "0.2.0"
+version = "0.2.1"
 source = { virtual = "." }
 
 [package.dev-dependencies]
@@ -1666,7 +1666,7 @@ test = [
 
 [[package]]
 name = "strain-discovery-dataset"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "packages/strain_discovery_dataset" }
 dependencies = [
     { name = "deepdiff" },
