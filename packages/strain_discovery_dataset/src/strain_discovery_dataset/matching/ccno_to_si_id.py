@@ -61,7 +61,7 @@ async def _get_strain_ids(
     await queue.put(None)
 
 
-async def _request_avg_strain_data(
+async def _request_max_strain_data(
     client: httpx.AsyncClient, req: list[int], /
 ) -> list[StrainMaxRecord]:
     url = f"{_BASE_URL}/data/strain/max/{','.join(map(str, req))}"
@@ -97,10 +97,10 @@ async def _get_strain_data(
     while (sid := await queue.get()) is not None:
         buffer.append(sid)
         if len(buffer) >= _MAX_BATCH_SIZE:
-            _add_record_to_memory(await _request_avg_strain_data(client, buffer), memory)
+            _add_record_to_memory(await _request_max_strain_data(client, buffer), memory)
             buffer.clear()
     if buffer:
-        _add_record_to_memory(await _request_avg_strain_data(client, buffer), memory)
+        _add_record_to_memory(await _request_max_strain_data(client, buffer), memory)
 
 
 # vote best matching strain
