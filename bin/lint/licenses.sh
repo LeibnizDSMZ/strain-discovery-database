@@ -71,8 +71,8 @@ done
 FILES=()
 
 IGNORE=(
-    '^bin/lint/licenses\.sh'
-    '^bin/install/wrap\.sh'
+    '^bin/lint/licenses\.sh$'
+    '^bin/install/wrap\.sh$'
     '^LICENSES/'
     '^configs/prompt/'
     '^configs/REUSE\.toml$'
