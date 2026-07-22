@@ -7,6 +7,7 @@ FROM docker.io/almalinux:10 AS appbuilder
 ARG BIN_DEPLOY_PREP
 ARG BIN_DEPLOY_REQ
 ARG CONTAINER="container"
+ARG NODE_VERSION
 
 COPY . /tmp/app
 
@@ -34,6 +35,7 @@ ARG HOME_MAIN="/home/${USERNAME}"
 ARG BIN_DEPLOY_ENTRY_PROD
 ARG BIN_DEPLOY_HEALTH
 ARG BIN_EVALUATE_LOG
+ARG NODE_VERSION
 
 RUN dnf clean all && dnf install -y bash
 
