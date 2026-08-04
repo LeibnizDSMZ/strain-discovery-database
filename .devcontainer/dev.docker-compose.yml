@@ -37,13 +37,13 @@ services:
       - mongo-sock:/mongo
       - sdd-data:/data
     networks:
-      - ollama
+      - agent
       - strain_discovery_network
     ports:
       - ${DOC_PORT}:8000
 
 networks:
-    ollama:
+    agent:
         external: true
-        name: ollama
+        name: agent
         driver: bridge
