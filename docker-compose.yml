@@ -99,3 +99,4 @@ networks:
     strain_discovery_network:
         name: strain_discovery_network
         driver: bridge
+        internal: true
