@@ -916,8 +916,8 @@ wheels = [
 
 [[package]]
 name = "microbial-strain-data-model"
-version = "0.12.11"
-source = { git = "https://github.com/LeibnizDSMZ/microbial-data-standard.git?subdirectory=packages%2Fmicrobial_strain_data_model&rev=v0.12.11#59f5aa722d9807cde2812345af4b8bcd179c80e4" }
+version = "0.12.13"
+source = { git = "https://github.com/LeibnizDSMZ/microbial-data-standard.git?subdirectory=packages%2Fmicrobial_strain_data_model&rev=v0.12.13#5ce18aa3b6a95bf28ea0f716635802aa60097bc1" }
 dependencies = [
     { name = "anytree" },
     { name = "deepdiff" },
@@ -1747,7 +1747,7 @@ dependencies = [
 requires-dist = [
     { name = "deepdiff", specifier = ">=9.0.0,<10" },
     { name = "httpx", specifier = "==0.28.1" },
-    { name = "microbial-strain-data-model", git = "https://github.com/LeibnizDSMZ/microbial-data-standard.git?subdirectory=packages%2Fmicrobial_strain_data_model&rev=v0.12.11" },
+    { name = "microbial-strain-data-model", git = "https://github.com/LeibnizDSMZ/microbial-data-standard.git?subdirectory=packages%2Fmicrobial_strain_data_model&rev=v0.12.13" },
     { name = "pydantic", specifier = ">=2.13,<3" },
     { name = "pymongo", specifier = "==4.3.3" },
     { name = "saim", git = "https://github.com/LeibnizDSMZ/saim.git?rev=v0.11.3" },
