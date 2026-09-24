@@ -38,19 +38,22 @@ async def _get_strain_ids(
     /,
 ) -> None:
     acr = memory["man"]["acr"]
-    for bat in range(0, len(ccnos), _MAX_BATCH_SIZE):
-        batch = [
-            ccno
-            for ccno in ccnos[bat : bat + _MAX_BATCH_SIZE]
-            if (des := acr.identify_ccno(ccno)).acr != ""
-            and (des.acr, des.id.pre, des.id.core, des.id.suf) not in memory["ccnos"]
-        ]
-        url = f"{_BASE_URL}/search/strain/cc_no/{quote(','.join(batch), safe='')}"
-        ids = await fetch_with_retry_async(client, url, {}, {})
-        if isinstance(ids, list):
-            for sid in ids:
-                await queue.put(sid)
-    await queue.put(None)
+    try:
+        for bat in range(0, len(ccnos), _MAX_BATCH_SIZE):
+            batch = [
+                ccno
+                for ccno in ccnos[bat : bat + _MAX_BATCH_SIZE]
+                if (des := acr.identify_ccno(ccno)).acr != ""
+                and (des.acr, des.id.pre, des.id.core, des.id.suf) not in memory["ccnos"]
+            ]
+            url = f"{_BASE_URL}/search/strain/cc_no/{quote(','.join(batch), safe='')}"
+            ids = await fetch_with_retry_async(client, url, {}, {})
+            if isinstance(ids, list):
+                for sid in ids:
+                    await queue.put(sid)
+    finally:
+        # Always send sentinel, even on error, to prevent consumer from hanging
+        await queue.put(None)
 
 
 async def _request_max_strain_data(
@@ -190,8 +193,10 @@ async def run_resolution_async(
         reader_task = asyncio.create_task(
             _get_strain_ids(client, ccnos, strain_queue, memory)
         )
-        await _get_strain_data(client, strain_queue, memory)
-        await reader_task
+        consumer_task = asyncio.create_task(
+            _get_strain_data(client, strain_queue, memory)
+        )
+        await asyncio.gather(reader_task, consumer_task, return_exceptions=True)
     res = list(_create_results(tasks, memory))
     if len(memory["strains"]) >= 100_000:
         memory["strains"] = {}
