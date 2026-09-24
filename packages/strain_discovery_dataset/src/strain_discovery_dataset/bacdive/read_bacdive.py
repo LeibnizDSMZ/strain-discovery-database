@@ -50,7 +50,7 @@ def bacdive_get_all() -> Iterable[dict[str, Any]]:
         csv_content = csv.reader(io.StringIO(_get_bacdive_csv(client)))
         ids = [row[0] for row in csv_content if len(row) > 0 and row[0].isdigit()]
         for req_id in chunked(ids, 20):
-            print(f"\r{req_id[0]} - {len(req_id)}{' ' * 10}", end="")
+            print(f"\r[BD] {req_id[0]} - {len(req_id)}{' ' * 10}", end="")
             one_url = f"{_URL}/{';'.join(req_id)}"
             data = fetch_with_retry(client, one_url, {}, {})
             if not isinstance(data, dict):
