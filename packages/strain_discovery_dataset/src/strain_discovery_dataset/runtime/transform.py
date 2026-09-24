@@ -63,18 +63,18 @@ class TransformData(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def _transformer(self, data: dict[str, Any], /) -> Strain | None:
+    def _transformer(self, data: dict[str, Any], /) -> Strain:
         raise NotImplementedError()
 
     @abstractmethod
-    def _get_id(self, data: dict[str, Any], /) -> Strain | None:
+    def _get_id(self, data: dict[str, Any], /) -> str:
         raise NotImplementedError()
 
     def __write(self, msg: str, fih: TextIOWrapper, /) -> None:
         with self.__lock:
             fih.write(msg)
 
-    def __transform(self, data: dict[str, Any], /) -> None | Strain:
+    def __transform(self, data: dict[str, Any], /) -> Strain | None:
         results = None
         try:
             results = self._transformer(data)
@@ -129,11 +129,11 @@ class TransformBacDive(TransformData):
         return "bacdive"
 
     @override
-    def _transformer(self, data: dict[str, Any], /) -> Strain | None:
+    def _transformer(self, data: dict[str, Any], /) -> Strain:
         return transform_bacdive(data)
 
     @override
-    def _get_id(self, data: dict[str, Any], /) -> Strain | None:
+    def _get_id(self, data: dict[str, Any], /) -> str:
         return data.get("General", {}).get("BacDive-ID", "UNKNOWN")
 
 
@@ -144,11 +144,11 @@ class TransformMirri(TransformData):
         return "mirri"
 
     @override
-    def _transformer(self, data: dict[str, Any], /) -> Strain | None:
+    def _transformer(self, data: dict[str, Any], /) -> Strain:
         return transform_mirri(data)
 
     @override
-    def _get_id(self, data: dict[str, Any], /) -> Strain | None:
+    def _get_id(self, data: dict[str, Any], /) -> str:
         return data.get("name", "UNKNOWN")
 
 
@@ -159,9 +159,9 @@ class TransformDsmz(TransformData):
         return "dsmz"
 
     @override
-    def _transformer(self, data: dict[str, Any], /) -> Strain | None:
+    def _transformer(self, data: dict[str, Any], /) -> Strain:
         return transform_dsmz(data)
 
     @override
-    def _get_id(self, data: dict[str, Any], /) -> Strain | None:
+    def _get_id(self, data: dict[str, Any], /) -> str:
         return data.get("primaryId", "UNKNOWN")

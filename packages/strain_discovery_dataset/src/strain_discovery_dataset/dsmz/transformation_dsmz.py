@@ -50,12 +50,12 @@ def _fix_collections(strain) -> list[dict[str, Any]]:
     return [create_collection_dict(get_acr_man(), selected, ccno)]
 
 
-def transform_dsmz(dsmz_data) -> Strain | None:
+def transform_dsmz(dsmz_data) -> Strain:
     ccno: dict[str | tuple[str, str, str, str], tuple[str, str]] = {}
     for des in dsmz_data["identifier"]:
         ana = get_acr_man().identify_ccno(des.get("value", ""))
         if ana.designation == "":
-            return None
+            continue
         if ana.acr == "":
             ccno[ana.designation] = ("Designation", ana.designation)
         else:
@@ -72,17 +72,16 @@ def transform_dsmz(dsmz_data) -> Strain | None:
         for nam, val in ccno.values()
     ]
     if len(dsmz_data["identifier"]) == 0:
-        print(f"\nNO IDENTIFIERS for {dsmz_data.get('primaryId')}\n")
-        return None
+        raise ValueError(f"NO IDENTIFIERS for {dsmz_data.get('primaryId')}")
     for seq in dsmz_data.get("sequence", []):
         acc = seq.get("accessionNumber")
         if not acc:
-            return None
+            continue
         seq["accessionNumber"] = get_seq_acc(acc)
     for rel in dsmz_data.get("relatedData", []):
         src = rel.get("source")
         if not isinstance(src, list):
-            return None
+            continue
         rel["source"] = "/sources/0"
     dsmz_data["sources"] = [
         _fix_dsmz_url(source, dsmz_data["primaryId"])

@@ -34,6 +34,7 @@ def set_up_logs() -> None:
         "merge_errors",
         "mirri_validation_errors",
         "bacdive_validation_errors",
+        "dsmz_validation_errors",
         "numbers",
     ]:
         with get_log_file(log_name).open("w", encoding="utf-8") as f:
