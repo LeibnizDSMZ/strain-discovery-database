@@ -20,7 +20,7 @@ fi
 
 # Process the log file with awk
 awk '
-/^(Validation error for BacDive ID|Validation failed)/ {
+/^Validation failed/ {
     in_block = 1
     next
 }
