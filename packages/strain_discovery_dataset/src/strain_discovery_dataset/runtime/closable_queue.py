@@ -24,14 +24,13 @@ class ClosableQueue[T]:
     ) -> None:
         self.__queue: Queue[T] = ctx.Queue(10_000)
         self.__all_sources = all_sources
-        self.__source_finished = ctx.Value("i", 0, lock=False)
-        self.__closed = ctx.Value(c_bool, False, lock=False)
+        self.__source_finished = ctx.Value("i", 0)
+        self.__closed = ctx.Value(c_bool, False)
         self.__error = error
         self.__lock = ctx.RLock()
 
     def __is_closed(self) -> bool:
-        with self.__lock:
-            return self.__closed.value or self.__error.value
+        return self.__closed.value or self.__error.value
 
     def put(self, item: T) -> None:
         to_send = True
@@ -51,25 +50,22 @@ class ClosableQueue[T]:
 
     def source_finished(self, name: str, /) -> None:
         with self.__lock:
-            self.__source_finished.value += 1
-            print(
-                f"\n{name} finished {self.__source_finished.value} / {self.__all_sources}"
-            )
-            if self.__source_finished.value >= self.__all_sources:
-                self.__closed.value = True
+            cur_loc = self.__source_finished.value + 1
+            self.__source_finished.value = cur_loc
+        print(f"\n{name} finished {cur_loc} / {self.__all_sources}")
+        if cur_loc >= self.__all_sources:
+            self.__closed.value = True
 
     @property
     def running(self) -> bool:
-        with self.__lock:
-            if self.__error.value:
-                return False
-            return not (self.__closed.value and self.__queue.empty())
+        if self.__error.value:
+            return False
+        return not (self.__closed.value and self.__queue.empty())
 
     def force_close(self) -> None:
         print("\nclosing queue forcefully\n")
-        with self.__lock:
-            self.__closed.value = True
-            self.__error.value = True
+        self.__closed.value = True
+        self.__error.value = True
         try:
             while True:
                 self.__queue.get_nowait()
