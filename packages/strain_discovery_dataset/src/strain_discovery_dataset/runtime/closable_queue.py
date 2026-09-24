@@ -28,6 +28,7 @@ class ClosableQueue[T]:
         self.__closed = ctx.Value(c_bool, False)
         self.__error = error
         self.__lock = ctx.RLock()
+        self.__queue.cancel_join_thread()
 
     def __is_closed(self) -> bool:
         return self.__closed.value or self.__error.value
