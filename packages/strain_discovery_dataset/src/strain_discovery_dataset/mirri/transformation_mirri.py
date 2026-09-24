@@ -2,28 +2,24 @@
 #
 # SPDX-License-Identifier: MIT
 
-from strain_discovery_dataset.utils.run import get_log_file
+from strain_discovery_dataset.matching.memory import get_acr_man
 from microbial_strain_data_model.classes.enums import OrganismType
 import json
 from datetime import datetime
 import re
 from typing import Any
 from microbial_strain_data_model.strain import Strain
-from pydantic_core import ValidationError
-from saim.designation.manager import AcronymManager
 
 from strain_discovery_dataset.utils.collections import (
     create_collection_dict,
     get_brc_from_string,
 )
-from strain_discovery_dataset.utils.data import ACR_DB_VERSION
 from cafi.container.acr_db import AcrDbEntry
 from strain_discovery_dataset.utils.seq import get_seq_acc
 
 
 _SEP = re.compile(r"[,;]+")
 _MIRRI_ID = re.compile(r"^MIRRI0*")
-_ACR = AcronymManager(ACR_DB_VERSION)
 _CURRENT_DATE = datetime.now()
 
 
@@ -620,7 +616,7 @@ def strain_identifiers(input_data, out):
     ):
         if not isinstance(des, str) or des.strip() == "":
             continue
-        ana = _ACR.identify_ccno(des.strip())
+        ana = get_acr_man().identify_ccno(des.strip())
         if ana.designation == "":
             continue
         if ana.acr == "":
@@ -1012,18 +1008,21 @@ def collection(input_data, out):
     col_name = input_data.get("dataFrom")
     ccno_str = get_default_str(input_data, "mirriAccessionNumber", "")
     ccnos = set(
-        des.designation for des in _ACR.extract_all_valid_ccno_from_text(ccno_str)
+        des.designation
+        for des in get_acr_man().extract_all_valid_ccno_from_text(ccno_str)
     )
     if isinstance(col_name, str) and col_name != "" and len(ccnos) == 1:
         ccno = ccnos.pop()
-        selected: AcrDbEntry | None = get_brc_from_string(_ACR, ccno, col_name)
+        selected: AcrDbEntry | None = get_brc_from_string(get_acr_man(), ccno, col_name)
         if selected is not None:
             if selected.ror == "02tyer376":
                 raise ValueError(f"DSMZ {ccno} detected in {out['primaryId']}")
-            out["collections"].append(create_collection_dict(_ACR, selected, ccno))
+            out["collections"].append(
+                create_collection_dict(get_acr_man(), selected, ccno)
+            )
 
 
-def transform(mirri_data) -> Strain | None:
+def transform_mirri(mirri_data) -> Strain | None:
     transformed_data: dict[str, Any] = {"version": 1}
 
     # Required
@@ -1068,13 +1067,4 @@ def transform(mirri_data) -> Strain | None:
     metabolic_data(mirri_data, transformed_data)
 
     # Validation
-    try:
-        return Strain.model_validate_json(json.dumps(transformed_data))
-    except (ValidationError, ValueError) as e:
-        with get_log_file("mirri_validation_errors").open(
-            "a", encoding="utf-8"
-        ) as log_file:
-            log_file.write(f"Validation failed {mirri_data.get('name', 'unknown')}\n")
-            log_file.write(f"{e}\n")
-        print(f"MIRRI Validation failed {mirri_data.get('name', 'unknown')}")
-        return None
+    return Strain.model_validate_json(json.dumps(transformed_data))

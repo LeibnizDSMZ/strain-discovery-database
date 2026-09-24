@@ -2,16 +2,18 @@
 #
 # SPDX-License-Identifier: MIT
 
-from strain_discovery_dataset.utils.run import get_log_file
+from saim.designation.manager import AcronymManager
+from strain_discovery_dataset.utils.data import ResultSAIM
+from strain_discovery_dataset.utils.data import SaimStrain
+from strain_discovery_dataset.utils.data import ResultSI
+from collections.abc import Iterable
 from pydantic_extra_types.country import CountryAlpha2
 from strain_discovery_dataset.utils.collections import create_collection
 import asyncio
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
-import re
 import time
-from io import TextIOWrapper
 from microbial_strain_data_model.classes.sequence import (
     SequenceType,
     SequenceLevel,
@@ -19,10 +21,10 @@ from microbial_strain_data_model.classes.sequence import (
 from saim.strain_matching.manager import MatchCache
 from strain_discovery_dataset.matching.ccno_to_si_id import (
     Memory,
-    prep_run,
     run_resolution_async,
     Task,
 )
+from collections.abc import Sequence as SequenceT
 from microbial_strain_data_model.strain import (
     OrganismType,
     Origin,
@@ -50,18 +52,14 @@ from saim.strain_matching.match import match_factory
 from strain_discovery_dataset.matching.strain_to_saim_id import run_saim_resolution
 from strain_discovery_dataset.utils.data import SaimMatchData
 from strain_discovery_dataset.utils.seq import get_seq_acc
-from strain_discovery_dataset.utils.taxa import parse_org_to_dom
-from saim.designation.manager import AcronymManager
-from strain_discovery_dataset.utils.data import ACR_DB_VERSION
 from saim.shared.data_con.designation import DesignationType
 
 
-_ACR = AcronymManager(ACR_DB_VERSION)
 _CURRENT_DATE = datetime.now()
 
 
 def make_strain_info_strain(
-    str_inf: StrainMaxRecord, organism_type: OrganismType
+    str_inf: StrainMaxRecord, organism_type: OrganismType, acr_man: AcronymManager, /
 ) -> Strain:
     si_strain = str_inf["strain"]
     si_deposits = str_inf["deposits"]
@@ -123,7 +121,7 @@ def make_strain_info_strain(
     strain.identifier.extend(
         IdentifierStrain(
             name="MIRRI ID"
-            if DesignationType.mir in list(_ACR.identify_designation_types(des))
+            if DesignationType.mir in list(acr_man.identify_designation_types(des))
             else "Designation",
             value=des,
             source=["/sources/0"],
@@ -161,11 +159,11 @@ def make_strain_info_strain(
         for literature in si_strain.get("literature", [])
     ]
     strain.collections = [
-        create_collection(_ACR, brc, dep["designation"])
+        create_collection(acr_man, brc, dep["designation"])
         for dep in si_deposits
         if dep["status"] != "erroneous"
         and (ccID := dep.get("cultureCollection", {}).get("ccID")) is not None
-        and (brc := _ACR.get_brc_by_id(ccID)) is not None
+        and (brc := acr_man.get_brc_by_id(ccID)) is not None
     ]
 
     sam_src: str | None = si_strain.get("sample", {}).get("source")
@@ -190,46 +188,22 @@ class ResData:
     unknown: dict[str, Strain]
 
 
-async def process_resolution_results(
-    run_tasks: list[Task],
+def process_resolution_results(
+    run_tasks: SequenceT[Task],
     memory: Memory,
-    data: ResData,
-    fmc: TextIOWrapper,
     /,
-) -> None:
-
+) -> Iterable[ResultSI]:
     start_time = time.time()
-    async for result in run_resolution_async(run_tasks, memory):
+    for result in asyncio.run(run_resolution_async(run_tasks, memory)):
         print(f"\rRESULT: {result['id']}{' ' * 10}", end="")
 
         si_strain = result["best_match_si_id"]
-        if si_strain is None:
-            data.unknown[result["id"]] = data.input[result["id"]]
-        else:
-            si_id = str(si_strain["strain"]["siID"])
-            try:
-                if si_id not in data.resolved:
-                    strain_info = make_strain_info_strain(
-                        si_strain,
-                        organism_type=data.input[result["id"]].organismType,
-                    )
-                    data.resolved[si_id] = strain_info.join(
-                        data.input[result["id"]],
-                    )
-                else:
-                    data.resolved[si_id] = data.resolved[si_id].join(
-                        data.input[result["id"]],
-                    )
-            except ValueError as exc:
-                print(f"\nFAILED TO MERGE SI-ID {si_id}\n")
-                fmc.write(
-                    f"\nFAILED TO MERGE SI-ID {si_id} \n "
-                    + f"{data.resolved.get(si_id, 'Unknown origin')}\n"
-                    + f"\n {data.input[result['id']]} \n {exc!s} \n ---\n"
-                )
-                data.unknown[result["id"]] = data.input[result["id"]]
-
-        del data.input[result["id"]]
+        output = {"source": result["source"], "matched": None, "origin": result["strain"]}
+        if si_strain is not None:
+            output["matched"] = make_strain_info_strain(
+                si_strain, result["strain"].organismType, memory["man"]["acr"]
+            )
+        yield output
     total_end_time = time.time()
     total_duration = total_end_time - start_time
     print(
@@ -239,19 +213,11 @@ async def process_resolution_results(
 
 def process_unresolved_results(
     memory: Memory,
-    data: ResData,
-    fmc: TextIOWrapper,
+    data: Iterable[tuple[str, Strain]],
     /,
-) -> None:
-    sources = [
-        re.compile(r"^BD-ID.+"),
-        re.compile(r"^MIRRI.+"),
-        re.compile(r"^.+"),
-    ]
-    if memory["man"] is None:
-        raise Exception("Manager not initialized in memory")
+) -> Iterable[ResultSAIM]:
+    # Order of strains is not guaranteed, thus can lead to different results each run
     acr_man = memory["man"]["acr"]
-    saim_results: dict[str, list[Strain]] = defaultdict(list)
     matcher, _ = match_factory(SaimMatchData, False, False)(
         acr_man,
         MatchCache(
@@ -261,78 +227,12 @@ def process_unresolved_results(
             si_cu_err=set(),
         ),
     )
-    for src in sources:
-        for key in list(data.unknown.keys()):
-            if src.match(key) is None:
-                continue
-            strain = data.unknown.pop(key, None)
-            if strain is None:
-                continue
-            run_saim_resolution(memory, matcher, strain, saim_results)
-
-    for saim_id, strains in saim_results.items():
-        if len(strains) == 0:
+    saim_cache: dict[str, list[SaimStrain]] = defaultdict(list)
+    for source, strain in data:
+        if strain.primaryId == "":
             continue
-        if len(strains) == 1:
-            data.resolved[strains[0].primaryId] = strains[0]
-        else:
-            strains[0].primaryId = saim_id
-            data.resolved[saim_id] = strains[0]
-            for to_merge in strains[1:]:
-                try:
-                    data.resolved[saim_id] = data.resolved[saim_id].join(to_merge)
-                except ValueError as exc:
-                    print(f"\nFAILED TO MERGE SAIM {saim_id}\n")
-                    fmc.write(
-                        f"\nFAILED TO MERGE SAIM {saim_id}\n{to_merge}\n"
-                        + f"\n{exc!s} \n ---\n"
-                    )
-                    data.unknown[to_merge.primaryId] = to_merge
-    for key, strain in data.unknown.items():
-        data.resolved[key] = strain
-
-
-async def match_strains_from_queue(
-    queue: asyncio.Queue[Strain], sources: int, /
-) -> dict[str, Strain]:
-    data = ResData(input={}, resolved={}, unknown={})
-    none_count = 0
-    BATCH_SIZE = 5_000
-    tasks: list[Task | None] = [None] * BATCH_SIZE
-    ind = 0
-    memory = prep_run(None)
-    with get_log_file("merge_errors").open("a") as fmc:
-        while none_count < sources:
-            strain = await queue.get()
-            if strain is None:
-                none_count += 1
-                continue
-            tasks[ind] = {
-                "id": strain.primaryId,
-                "ccnos": [
-                    ccno.value for ccno in strain.identifier if ccno.name == "CCNO"
-                ],
-                "taxon": strain.taxon[0].name if len(strain.taxon) == 1 else "",
-                "domain": parse_org_to_dom(strain.organismType),
-            }
-            data.input[strain.primaryId] = strain
-            ind += 1
-
-            if ind == BATCH_SIZE:
-                await process_resolution_results(
-                    [task for task in tasks[:ind] if task is not None],
-                    memory,
-                    data,
-                    fmc,
-                )
-                ind = 0
-
-        if ind > 0:
-            await process_resolution_results(
-                [task for task in tasks[:ind] if task is not None],
-                memory,
-                data,
-                fmc,
-            )
-    process_unresolved_results(memory, data, fmc)
-    return data.resolved
+        yield {
+            "source": source,
+            "saim": run_saim_resolution(memory, matcher, strain, saim_cache),
+            "origin": strain,
+        }
