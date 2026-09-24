@@ -12,7 +12,6 @@ import traceback
 from multiprocessing.synchronize import RLock
 from strain_discovery_dataset.utils.run import get_log_file
 from io import TextIOWrapper
-from queue import Empty
 from strain_discovery_dataset.runtime.closable_queue import ClosableQueue
 from typing import Any
 from microbial_strain_data_model.strain import Strain
@@ -97,18 +96,13 @@ class TransformData(ABC):
     def __run(self) -> None:
         cnt = 0
         try:
-            while self.__queue_in.running:
-                try:
-                    data = self.__queue_in.get()
-                    strain = self.__transform(data)
-                    if strain is not None:
-                        self.__queue_out.put((self._transform_name, strain))
-                        cnt += 1
-                except Empty:
-                    pass
-        except ValueError as exc:
-            if self.__queue_in.running:
-                raise exc
+            for data in self.__queue_in.get():
+                strain = self.__transform(data)
+                if strain is not None:
+                    self.__queue_out.put((self._transform_name, strain))
+                    cnt += 1
+        except ValueError:
+            pass
         with get_log_file("numbers").open("a", encoding="utf-8") as fnu:
             self.__write(f"Transformed {self._transform_name} strains: {cnt}\n", fnu)
         self.__queue_out.source_finished(f"{self._transform_name}-transformer")

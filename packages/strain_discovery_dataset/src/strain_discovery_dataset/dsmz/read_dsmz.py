@@ -22,7 +22,7 @@ def dsmz_get_all():
             if isinstance(data, dict):
                 total_count = data.get("meta", {}).get("totalCount", 0)
                 for strain in data.get("data", []):
-                    print(f"\r[DSMZ] {strain.get('primaryId')}{' ' * 10}", end="")
+                    print(f"\r[DSMZ] {strain.get('primaryId')}{' ' * 20}", end="")
                     yield strain
             else:
                 yield None

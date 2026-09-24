@@ -1,26 +1,31 @@
 # SPDX-FileCopyrightText: 2026 Leibniz Institute DSMZ-German Collection of Microorganisms and Cell Cultures GmbH
+# SPDX-FileCopyrightText: 2026 Leibniz Institute DSMZ‑German Collection of Microorganisms and Cell Cultures GmbH
 #
 # SPDX-License-Identifier: MIT
 
-from typing import Any
-from ctypes import c_bool
+from microbial_strain_data_model.strain import Strain
+import datetime
 import multiprocessing
 from multiprocessing.context import SpawnContext
+from typing import Any
+
 from strain_discovery_dataset.runtime.saim import SaimSink
 from strain_discovery_dataset.runtime.straininfo import StrainInfo
-from strain_discovery_dataset.runtime.transform import TransformBacDive
-from strain_discovery_dataset.runtime.transform import TransformMirri
-from microbial_strain_data_model.strain import Strain
-from strain_discovery_dataset.runtime.transform import TransformDsmz
-from strain_discovery_dataset.runtime.fetch import FetchBacDive
-from strain_discovery_dataset.runtime.fetch import FetchMirri
-from strain_discovery_dataset.runtime.fetch import FetchDsmz
+from strain_discovery_dataset.runtime.transform import (
+    TransformBacDive,
+    TransformDsmz,
+    TransformMirri,
+)
+from strain_discovery_dataset.runtime.fetch import (
+    FetchBacDive,
+    FetchDsmz,
+    FetchMirri,
+)
 from strain_discovery_dataset.runtime.closable_queue import ClosableQueue
 from strain_discovery_dataset.utils.run import get_log_file
-import datetime
 
 
-def set_up_logs():
+def set_up_logs() -> None:
     date = datetime.datetime.now()
     for log_name in [
         "bacdive_errors",
@@ -35,79 +40,91 @@ def set_up_logs():
             f.write(f"Date: {date}\n")
 
 
-def main():
-    # Use spawn context for safety (especially on macOS/Linux)
+def main() -> None:
     ctx: SpawnContext = multiprocessing.get_context("spawn")
     start_time = datetime.datetime.now()
     print(f"Start time: {start_time}")
 
-    # Shared error flag (lightweight, no Manager needed)
-    error = ctx.Value(c_bool, False)
     file_lock = ctx.RLock()
+    set_up_logs()
+
+    queue_bac: ClosableQueue[dict[str, Any]] = ClosableQueue(ctx, 1)
+    queue_dsmz: ClosableQueue[dict[str, Any]] = ClosableQueue(ctx, 1)
+    queue_mirri: ClosableQueue[dict[str, Any]] = ClosableQueue(ctx, 1, 10_000)
+    queue_strain: ClosableQueue[tuple[str, Strain]] = ClosableQueue(ctx, 3)
+    queue_si: ClosableQueue[tuple[str, Strain]] = ClosableQueue(ctx, 1)
+
+    processes = [
+        ctx.Process(target=FetchDsmz(file_lock, queue_dsmz).run, name="FetchDsmz"),
+        ctx.Process(target=FetchMirri(file_lock, queue_mirri).run, name="FetchMirri"),
+        ctx.Process(target=FetchBacDive(file_lock, queue_bac).run, name="FetchBacDive"),
+        ctx.Process(
+            target=TransformDsmz(file_lock, queue_dsmz, queue_strain).run,
+            name="TransformDsmz",
+        ),
+        ctx.Process(
+            target=TransformMirri(file_lock, queue_mirri, queue_strain).run,
+            name="TransformMirri",
+        ),
+        ctx.Process(
+            target=TransformBacDive(file_lock, queue_bac, queue_strain).run,
+            name="TransformBacDive",
+        ),
+        ctx.Process(
+            target=StrainInfo(file_lock, queue_strain, queue_si).run,
+            name="StrainInfo",
+        ),
+        ctx.Process(target=SaimSink(file_lock, queue_si).run, name="SaimSink"),
+    ]
+
+    all_queues: list[ClosableQueue[Any]] = [
+        queue_bac,
+        queue_dsmz,
+        queue_mirri,
+        queue_strain,
+        queue_si,
+    ]
 
     try:
-        set_up_logs()
-
-        # Shared resources
-
-        # Queues (multiprocessing-safe)
-        queue_bac: ClosableQueue[dict[str, Any]] = ClosableQueue(ctx, 1, error)
-        queue_dsmz: ClosableQueue[dict[str, Any]] = ClosableQueue(ctx, 1, error)
-        queue_mirri: ClosableQueue[dict[str, Any]] = ClosableQueue(ctx, 1, error)
-        queue_strain: ClosableQueue[tuple[str, Strain]] = ClosableQueue(ctx, 3, error)
-        queue_si: ClosableQueue[tuple[str, Strain]] = ClosableQueue(ctx, 1, error)
-
-        # Create processes with dedicated names
-        processes = [
-            ctx.Process(target=FetchDsmz(file_lock, queue_dsmz).run, name="FetchDsmz"),
-            ctx.Process(target=FetchMirri(file_lock, queue_mirri).run, name="FetchMirri"),
-            ctx.Process(
-                target=FetchBacDive(file_lock, queue_bac).run, name="FetchBacDive"
-            ),
-            ctx.Process(
-                target=TransformDsmz(file_lock, queue_dsmz, queue_strain).run,
-                name="TransformDsmz",
-            ),
-            ctx.Process(
-                target=TransformMirri(file_lock, queue_mirri, queue_strain).run,
-                name="TransformMirri",
-            ),
-            ctx.Process(
-                target=TransformBacDive(file_lock, queue_bac, queue_strain).run,
-                name="TransformBacDive",
-            ),
-            ctx.Process(
-                target=StrainInfo(file_lock, queue_strain, queue_si).run,
-                name="StrainInfo",
-            ),
-            ctx.Process(target=SaimSink(file_lock, queue_si).run, name="SaimSink"),
-        ]
-
-        # Start all processes
         for pro in processes:
             pro.start()
-            print(f"Started process: {pro.name}")
+            print(f"\nStarted process: {pro.name}\n")
 
-        # Wait for all to finish
-        for ind, pro in enumerate(processes):
-            print(f"\nJoining process {ind + 1} - {pro.name}")
-            pro.join()
-            print(f"Joined process {ind + 1} - {pro.name}")
+        error_broadcasted = False
+        alive = len(processes)
+        while not error_broadcasted and alive > 0:
+            alive = len(processes)
+            for idx, pro in enumerate(processes):
+                print(f"\rJoining process {idx + 1}/{len(processes)} {pro.name}", end="")
+                pro.join(timeout=1.5)
+                alive -= 0 if pro.is_alive() else 1
+                if error_broadcasted:
+                    continue
+
+                if any(que.has_error() for que in all_queues):
+                    print("\nDetected an error broadcasting shutdown\n")
+                    for p in processes:
+                        if p.is_alive():
+                            p.terminate()
+                    error_broadcasted = True
+
+        for pro in processes:
+            if pro.is_alive():
+                print(f"\rWaiting for {pro.name} to finish (no timeout)...", end="")
+                pro.join()
+            print(f"\nJoined - {pro.name}\n")
 
         end_time = datetime.datetime.now()
-        print(f"Duration: {end_time - start_time}")
+        print(f"\nDuration: {end_time - start_time}\n")
 
-    except Exception as err:
-        print("Main process threw an exception")
-        error.value = True
-        raise err
-
-    # Optional: Check if any process failed
-    if error.value:
-        print("One or more processes failed.")
-        exit(1)
+    except Exception as exc:
+        print(f"\nMain process raised an exception: {exc!r}\n")
+        for p in processes:
+            if p.is_alive():
+                p.terminate()
+        raise
 
 
 if __name__ == "__main__":
-    multiprocessing.set_start_method("spawn")
+    multiprocessing.set_start_method("spawn", force=True)
     main()
