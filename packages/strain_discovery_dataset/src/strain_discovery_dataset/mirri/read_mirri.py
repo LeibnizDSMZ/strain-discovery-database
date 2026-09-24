@@ -45,6 +45,7 @@ def mirri_get_all() -> Iterable[dict[str, Any]]:
                     isinstance(item_id, str) or isinstance(item_id, int)
                 ) and item_id not in seen_ids:
                     seen_ids.add(item_id)
+                    print(f"\r[MIRRI] {page_size * (page - 1)} - {expected_entries}{' ' * 10}", end="")
                     yield item
             if len(new_items) < page_size:
                 break
