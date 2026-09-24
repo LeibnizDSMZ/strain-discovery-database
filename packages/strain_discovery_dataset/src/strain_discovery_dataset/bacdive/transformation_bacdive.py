@@ -1142,7 +1142,7 @@ def collection(input_data):
             yield create_collection_dict(get_acr_man(), selected, ccno)
 
 
-def transform_bacdive(bac_dive_data) -> Strain | None:
+def transform_bacdive(bac_dive_data) -> Strain:
 
     transformed_data: dict[str, Any] = {"version": 1}
     transformed_data["primaryId"] = f"BD-ID {bac_dive_data['General']['BacDive-ID']!s}"
@@ -1152,8 +1152,9 @@ def transform_bacdive(bac_dive_data) -> Strain | None:
     analyse_taxonomy(bac_dive_data, transformed_data)
     strain_identifiers(bac_dive_data, transformed_data)
     if len(transformed_data["identifier"]) == 1:
-        print(f"Only one identifier for BD-ID {bac_dive_data['General']['BacDive-ID']}")
-        return None
+        raise ValueError(
+            f"Only one identifier for BD-ID {bac_dive_data['General']['BacDive-ID']}"
+        )
 
     # Optional
     transformed_data["origin"] = list(origin(bac_dive_data))

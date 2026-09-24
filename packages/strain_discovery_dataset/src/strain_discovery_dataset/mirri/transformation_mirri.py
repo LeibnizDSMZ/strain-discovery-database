@@ -1022,7 +1022,7 @@ def collection(input_data, out):
             )
 
 
-def transform_mirri(mirri_data) -> Strain | None:
+def transform_mirri(mirri_data) -> Strain:
     transformed_data: dict[str, Any] = {"version": 1}
 
     # Required
@@ -1047,8 +1047,9 @@ def transform_mirri(mirri_data) -> Strain | None:
     strain_identifiers(mirri_data, transformed_data)
     taxon(mirri_data, transformed_data)
     if len(transformed_data["identifier"]) == 1:
-        print(f"Only one identifier for MIRRI-ID {mirri_data.get('name', 'unknown')}")
-        return None
+        raise ValueError(
+            f"Only one identifier for MIRRI-ID {mirri_data.get('name', 'unknown')}"
+        )
 
     # Optional
     origin(mirri_data, transformed_data)
