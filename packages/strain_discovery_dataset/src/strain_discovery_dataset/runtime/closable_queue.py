@@ -68,7 +68,6 @@ class ClosableQueue[T]:
             received, item = self.__get()
             if received:
                 yield item
-        raise ValueError("Queue is closed and empty")
 
     def source_finished(self, name: str, /) -> None:
         with self.__lock:
@@ -91,7 +90,7 @@ class ClosableQueue[T]:
     def __to_get(self) -> bool:
         with self.__lock:
             if self.__error.value:
-                return True
+                return False
             return not (self.__closed.value and self.__stack_size.value == 0)
 
     def force_close(self) -> None:

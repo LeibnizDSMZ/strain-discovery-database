@@ -95,7 +95,10 @@ def main() -> None:
         while not error_broadcasted and alive > 0:
             alive = len(processes)
             for idx, pro in enumerate(processes):
-                print(f"\rJoining process {idx + 1}/{len(processes)} {pro.name}", end="")
+                print(
+                    f"\rJoining process {idx + 1}/{len(processes)} {pro.name}{' ' * 10}",
+                    end="",
+                )
                 pro.join(timeout=1.5)
                 alive -= 0 if pro.is_alive() else 1
                 if error_broadcasted:
@@ -103,14 +106,14 @@ def main() -> None:
 
                 if any(que.has_error() for que in all_queues):
                     print("\nDetected an error broadcasting shutdown\n")
-                    for p in processes:
-                        if p.is_alive():
-                            p.terminate()
+                    for pro in processes:
+                        if pro.is_alive():
+                            pro.terminate()
                     error_broadcasted = True
 
         for pro in processes:
             if pro.is_alive():
-                print(f"\rWaiting for {pro.name} to finish (no timeout)...", end="")
+                print(f"\nWaiting for {pro.name} to finish (no timeout)...\n")
                 pro.join()
             print(f"\nJoined - {pro.name}\n")
 
@@ -119,9 +122,9 @@ def main() -> None:
 
     except Exception as exc:
         print(f"\nMain process raised an exception: {exc!r}\n")
-        for p in processes:
-            if p.is_alive():
-                p.terminate()
+        for pro in processes:
+            if pro.is_alive():
+                pro.terminate()
         raise
 
 
