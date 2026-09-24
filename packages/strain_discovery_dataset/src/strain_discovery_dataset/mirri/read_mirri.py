@@ -47,7 +47,7 @@ def mirri_get_all() -> Iterable[dict[str, Any]]:
                     seen_ids.add(item_id)
                     yield item
             print(
-                f"\r[MIRRI] {page_size * (page - 1)} - {expected_entries}{' ' * 10}",
+                f"\r[MIRRI] {page_size * (page - 1)} - {expected_entries}{' ' * 20}",
                 end="",
             )
             if len(new_items) < page_size:

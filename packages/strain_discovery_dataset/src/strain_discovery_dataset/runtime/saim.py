@@ -7,7 +7,6 @@ from strain_discovery_dataset.matching.memory import prep_run_memory
 from strain_discovery_dataset.utils.data import Memory
 from collections.abc import Iterable
 from strain_discovery_dataset.matching.strain_matching import process_unresolved_results
-from queue import Empty
 import shutil
 from strain_discovery_dataset.utils.run import get_cache_dir
 from microbial_strain_data_model.strain import Strain
@@ -50,14 +49,10 @@ class SaimSink:
 
     def __read_from_queue(self) -> Iterable[tuple[str, Strain]]:
         try:
-            while self.__queue.running:
-                try:
-                    yield self.__queue.get()
-                except Empty:
-                    pass
-        except ValueError as exc:
-            if self.__queue.running:
-                raise exc
+            for strain in self.__queue.get():
+                yield strain
+        except ValueError:
+            pass
 
     def run(self) -> None:
         print("\nsaim started\n")

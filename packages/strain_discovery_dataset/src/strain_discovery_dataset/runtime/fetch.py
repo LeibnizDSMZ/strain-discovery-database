@@ -70,7 +70,7 @@ class FetchData(ABC):
             raise err
         finally:
             self._fih.close()
-            print(f"\ntransformer {self._fetch_name} files closed\n")
+            print(f"\nfetcher {self._fetch_name} files closed\n")
 
 
 class FetchBacDive(FetchData):

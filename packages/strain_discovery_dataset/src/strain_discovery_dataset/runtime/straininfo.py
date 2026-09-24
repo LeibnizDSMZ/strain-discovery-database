@@ -12,7 +12,6 @@ from strain_discovery_dataset.utils.run import get_cache_dir
 import shutil
 from typing import Final
 from collections.abc import Sequence
-from queue import Empty
 from strain_discovery_dataset.runtime.closable_queue import ClosableQueue
 from microbial_strain_data_model.strain import Strain
 
@@ -71,35 +70,29 @@ class StrainInfo:
         print("\nstraininfo started\n")
         tasks: list[Task] = []
         try:
-            while self.__queue_in.running:
-                try:
-                    source, strain = self.__queue_in.get()
-                    tasks.append(
-                        {
-                            "id": strain.primaryId,
-                            "ccnos": [
-                                ccno.value
-                                for ccno in strain.identifier
-                                if ccno.name == "CCNO"
-                            ],
-                            "taxon": strain.taxon[0].name
-                            if len(strain.taxon) == 1
-                            else "",
-                            "domain": parse_org_to_dom(strain.organismType),
-                            "source": source,
-                            "strain": strain,
-                        }
-                    )
-                    if len(tasks) >= _BATCH_SIZE:
-                        self.__match(tasks)
-                        tasks = []
-                except Empty:
-                    pass
+            for source, strain in self.__queue_in.get():
+                tasks.append(
+                    {
+                        "id": strain.primaryId,
+                        "ccnos": [
+                            ccno.value
+                            for ccno in strain.identifier
+                            if ccno.name == "CCNO"
+                        ],
+                        "taxon": strain.taxon[0].name if len(strain.taxon) == 1 else "",
+                        "domain": parse_org_to_dom(strain.organismType),
+                        "source": source,
+                        "strain": strain,
+                    }
+                )
+                if len(tasks) >= _BATCH_SIZE:
+                    self.__match(tasks)
+                    tasks = []
+
             if len(tasks) > 0:
                 self.__match(tasks)
-        except ValueError as exc:
-            if self.__queue_in.running:
-                raise exc
+        except ValueError:
+            pass
         self.__queue_out.source_finished("straininfo-matching")
 
     def run(self) -> None:

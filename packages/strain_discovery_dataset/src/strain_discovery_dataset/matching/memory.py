@@ -22,7 +22,7 @@ def get_acr_man() -> AcronymManager:
 
 def prep_run_memory() -> Memory:
     conf = create_run_config()
-    acr = get_acr_man
+    acr = get_acr_man()
     lpsn_conf: LPSNConf = create_lpsn_config()
     tax = TaxonManager(conf.cache, lpsn_conf)
     mem: Memory = {

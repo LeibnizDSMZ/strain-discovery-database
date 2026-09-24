@@ -195,7 +195,7 @@ def process_resolution_results(
 ) -> Iterable[ResultSI]:
     start_time = time.time()
     for result in asyncio.run(run_resolution_async(run_tasks, memory)):
-        print(f"\rRESULT: {result['id']}{' ' * 10}", end="")
+        print(f"\rRESULT: {result['id']}{' ' * 20}", end="")
 
         si_strain = result["best_match_si_id"]
         output = {"source": result["source"], "matched": None, "origin": result["strain"]}
