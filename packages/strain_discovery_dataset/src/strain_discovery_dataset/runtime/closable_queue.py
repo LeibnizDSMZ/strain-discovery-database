@@ -24,8 +24,8 @@ class ClosableQueue[T]:
     ) -> None:
         self.__queue: Queue[T] = ctx.Queue(10_000)
         self.__all_sources = all_sources
-        self.__source_finished = ctx.Value("i", 0)
-        self.__closed = ctx.Value(c_bool, False)
+        self.__source_finished = ctx.Value("i", 0, lock=False)
+        self.__closed = ctx.Value(c_bool, False, lock=False)
         self.__error = error
         self.__lock = ctx.RLock()
 
@@ -70,3 +70,8 @@ class ClosableQueue[T]:
         with self.__lock:
             self.__closed.value = True
             self.__error.value = True
+        try:
+            while True:
+                self.__queue.get_nowait()
+        except queue.Empty:
+            pass
