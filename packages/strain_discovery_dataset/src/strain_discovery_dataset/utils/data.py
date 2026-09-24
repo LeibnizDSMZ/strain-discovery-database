@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
+from microbial_strain_data_model.classes.enums import OrganismType
+from microbial_strain_data_model.strain import Strain
 from pydantic_extra_types.country import CountryAlpha2
 from dataclasses import asdict, dataclass, field
 import json
@@ -17,7 +19,7 @@ from datetime import date
 
 # TODO update types to correct API version 2, especially DOIs and online status
 
-ACR_DB_VERSION: Final[str] = "v0.11.1"
+ACR_DB_VERSION: Final[str] = "v0.12.1"
 
 DataSourceEnum = Literal[
     "straininfo archive",
@@ -203,6 +205,25 @@ class Task(TypedDict):
     ccnos: list[str]
     taxon: str
     domain: DomainE
+    source: str
+    strain: Strain
+
+
+class SaimStrain(TypedDict):
+    organismType: OrganismType
+    taxon: str
+
+
+class ResultSI(TypedDict):
+    source: str
+    matched: Strain | None
+    origin: Strain
+
+
+class ResultSAIM(TypedDict):
+    source: str
+    saim: str
+    origin: Strain
 
 
 class ResultCCNo(TypedDict):
@@ -214,6 +235,8 @@ class Result(TypedDict):
     id: str
     ccnos: list[ResultCCNo]
     best_match_si_id: StrainMaxRecord | None
+    source: str
+    strain: Strain
 
 
 @final
@@ -236,7 +259,7 @@ class Manager(TypedDict):
 class Memory(TypedDict):
     ccnos: dict[tuple[str, str, str, str], set[int]]
     strains: dict[int, StrainMaxRecord]
-    man: Manager | None
+    man: Manager
     taxa: dict[tuple[str, DomainE], TaxonName]
     match: dict[tuple[str, DomainE, str, int, int], bool]
 

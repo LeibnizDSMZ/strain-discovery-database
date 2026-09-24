@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-from typing import AsyncGenerator
+from collections.abc import Iterable
 from typing import Any
 import httpx
 from strain_discovery_dataset.utils.fetch import fetch_with_retry
@@ -12,7 +12,7 @@ _URL = "https://webservices.bio-aware.com/mirri_new/public/strains"
 _HEADERS = {"Accept": "application/links+json"}
 
 
-async def mirri_get_all() -> AsyncGenerator[dict[str, Any]]:
+def mirri_get_all() -> Iterable[dict[str, Any]]:
     page = 1
     seen_ids = set()
     page_size = 100
@@ -23,9 +23,9 @@ async def mirri_get_all() -> AsyncGenerator[dict[str, Any]]:
         "sortDir": "asc",
     }
     expected_entries = 1
-    async with httpx.AsyncClient(timeout=200) as client:
+    with httpx.Client(timeout=200) as client:
         while page_size * (page - 1) < expected_entries:
-            data = await fetch_with_retry(client, _URL, _HEADERS, params)
+            data = fetch_with_retry(client, _URL, _HEADERS, params)
             page += 1
             params["page"] = page
             if not isinstance(data, dict):
@@ -50,11 +50,11 @@ async def mirri_get_all() -> AsyncGenerator[dict[str, Any]]:
                 break
 
 
-async def mirri_get_one(strain_id) -> dict | None:
+def mirri_get_one(strain_id) -> dict | None:
     one_url = f"{_URL}/{strain_id}"
 
-    async with httpx.AsyncClient(timeout=100) as client:
-        data = await fetch_with_retry(client, one_url, _HEADERS, {})
+    with httpx.Client(timeout=100) as client:
+        data = fetch_with_retry(client, one_url, _HEADERS, {})
 
     if data is None:
         print("API response is not 200")

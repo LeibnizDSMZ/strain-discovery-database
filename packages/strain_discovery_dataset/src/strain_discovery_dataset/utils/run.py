@@ -9,15 +9,19 @@ from strain_discovery_dataset.utils.data import RunConf
 _IMPORT_TIME = datetime.now().strftime("%Y_%m_%d_%H_%M")
 
 
+def get_cache_dir() -> Path:
+    cache = Path("/data/cache")
+    cache.mkdir(exist_ok=True)
+    return cache
+
+
 def create_run_config() -> RunConf:
     output_path = Path("/data/output/")
     if not output_path.is_dir():
         raise Exception("Output path does not exist, critical error!")
     output_path = output_path.joinpath(_IMPORT_TIME)
     output_path.mkdir(exist_ok=True, parents=True)
-    cache = Path("/data/cache")
-    cache.mkdir(exist_ok=True)
-    return RunConf(output=output_path, cache=cache)
+    return RunConf(output=output_path, cache=get_cache_dir())
 
 
 _LOG_FILES: dict[str, Path] = {}

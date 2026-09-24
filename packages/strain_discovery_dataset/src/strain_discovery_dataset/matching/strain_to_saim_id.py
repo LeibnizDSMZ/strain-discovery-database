@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
+from strain_discovery_dataset.utils.data import SaimStrain
 from typing import Iterable, MutableSequence, Sequence
 
 from microbial_strain_data_model.strain import (
@@ -75,12 +76,10 @@ def _vote_saim_id(
     matchedIds: Sequence[int],
     taxon: str,
     org_type: OrganismType,
-    strains: dict[str, list[Strain]],
+    strains_cache: dict[str, list[SaimStrain]],
     memory: Memory,
     /,
 ) -> int:
-    if memory["man"] is None:
-        raise Exception("Manager not initialized in memory")
     tax = memory["man"]["tax"]
     if len(matchedIds) == 0:
         return _create_new_saim_id()
@@ -92,11 +91,11 @@ def _vote_saim_id(
         )
     for pid in matchedIds:
         saim_id = _to_saim_id(pid)
-        for strain in strains.get(saim_id, []):
-            taxa_strain = strain.taxon[0].name if len(strain.taxon) > 0 else ""
-            if taxa_strain == "" or org_type != strain.organismType:
+        for strain in strains_cache.get(saim_id, []):
+            taxa_strain = strain["taxon"]
+            if taxa_strain == "" or org_type != strain["organismType"]:
                 continue
-            com_domain = parse_org_to_dom(strain.organismType)
+            com_domain = parse_org_to_dom(strain["organismType"])
             if (taxa_strain, com_domain) not in memory["taxa"]:
                 memory["taxa"][(taxa_strain, com_domain)] = create_unique_taxon_con(
                     taxa_strain, None, None, com_domain, tax
@@ -130,10 +129,9 @@ def run_saim_resolution(
     memory: Memory,
     matcher: _Matcher,
     strain: Strain,
-    strains: dict[str, list[Strain]],
-) -> None:
-    if memory["man"] is None:
-        raise Exception("Manager not initialized in memory")
+    strains_cache: dict[str, list[SaimStrain]],
+    /,
+) -> str:
     acr_man = memory["man"]["acr"]
     tasks = [
         SaimMatchData(
@@ -153,9 +151,15 @@ def run_saim_resolution(
         matched_ids,
         strain.taxon[0].name if len(strain.taxon) > 0 else "",
         strain.organismType,
-        strains,
+        strains_cache,
         memory,
     )
-    strains[_to_saim_id(voted_id)].append(strain)
+    strains_cache[_to_saim_id(voted_id)].append(
+        {
+            "organismType": strain.organismType,
+            "taxon": strain.taxon[0].name if len(strain.taxon) > 0 else "",
+        }
+    )
     for to_match in tasks:
         matcher(to_match, lambda mat: _update_match(mat, voted_id))
+    return _to_saim_id(voted_id)

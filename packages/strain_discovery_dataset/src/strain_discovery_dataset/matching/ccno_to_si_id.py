@@ -2,29 +2,23 @@
 #
 # SPDX-License-Identifier: MIT
 
-from strain_discovery_dataset.utils.lpsn import create_lpsn_config
-from strain_discovery_dataset.utils.run import create_run_config
+from strain_discovery_dataset.utils.fetch import fetch_with_retry_async
+from collections.abc import Sequence
 import asyncio
 import httpx
 from typing import (
-    AsyncGenerator,
     Final,
     Iterable,
 )
-from saim.designation.manager import AcronymManager
-from saim.taxon_name.manager import TaxonManager
-from saim.taxon_name.private.container import LPSNConf
 from saim.shared.data_con.taxon import DomainE
 from saim.shared.parse.general import pa_int
 from strain_discovery_dataset.utils.data import (
-    ACR_DB_VERSION,
     Memory,
     Result,
     ResultCCNo,
     StrainMaxRecord,
     Task,
 )
-from strain_discovery_dataset.utils.fetch import fetch_with_retry
 from urllib.parse import quote
 
 from strain_discovery_dataset.utils.taxa import (
@@ -43,8 +37,6 @@ async def _get_strain_ids(
     memory: Memory,
     /,
 ) -> None:
-    if memory["man"] is None:
-        raise Exception("Manager not initialized in memory")
     acr = memory["man"]["acr"]
     for bat in range(0, len(ccnos), _MAX_BATCH_SIZE):
         batch = [
@@ -54,7 +46,7 @@ async def _get_strain_ids(
             and (des.acr, des.id.pre, des.id.core, des.id.suf) not in memory["ccnos"]
         ]
         url = f"{_BASE_URL}/search/strain/cc_no/{quote(','.join(batch), safe='')}"
-        ids = await fetch_with_retry(client, url, {}, {})
+        ids = await fetch_with_retry_async(client, url, {}, {})
         if isinstance(ids, list):
             for sid in ids:
                 await queue.put(sid)
@@ -65,7 +57,7 @@ async def _request_max_strain_data(
     client: httpx.AsyncClient, req: list[int], /
 ) -> list[StrainMaxRecord]:
     url = f"{_BASE_URL}/data/strain/max/{','.join(map(str, req))}"
-    data = await fetch_with_retry(client, url, {}, {})
+    data = await fetch_with_retry_async(client, url, {}, {})
     if isinstance(data, list):
         return data
     print(f"url issues {url}")
@@ -73,8 +65,6 @@ async def _request_max_strain_data(
 
 
 def _add_record_to_memory(records: Iterable[StrainMaxRecord], memory: Memory, /) -> None:
-    if memory["man"] is None:
-        raise Exception("Manager not initialized in memory")
     acr = memory["man"]["acr"]
     for record in records:
         siId = record["strain"]["siID"]
@@ -113,8 +103,6 @@ def _vote_on_best_match_strain(
     memory: Memory,
     /,
 ) -> StrainMaxRecord | None:
-    if memory["man"] is None:
-        raise Exception("Manager not initialized in memory")
     tax = memory["man"]["tax"]
     if len(results) == 0:
         return None
@@ -160,9 +148,8 @@ def _vote_on_best_match_strain(
 # wrap results
 
 
-def _create_results(tasks: list[Task], memory: Memory, /) -> Iterable[Result]:
-    if memory["man"] is None:
-        raise Exception("Manager not initialized in memory")
+def _create_results(tasks: Sequence[Task], memory: Memory, /) -> Iterable[Result]:
+
     manager = memory["man"]
     for task in tasks:
         result: list[ResultCCNo] = [
@@ -185,32 +172,17 @@ def _create_results(tasks: list[Task], memory: Memory, /) -> Iterable[Result]:
                 result, task["taxon"], task["domain"], memory
             ),
             "ccnos": result,
+            "source": task["source"],
+            "strain": task["strain"],
         }
-
-
-# configure run
-
-
-def prep_run(memory: Memory | None, /) -> Memory:
-    mem: Memory | None = memory
-    if mem is None:
-        mem = {"ccnos": {}, "strains": {}, "man": None, "taxa": {}, "match": {}}
-    if mem["man"] is None:
-        print("FINISHED LOADING MANAGER")
-        conf = create_run_config()
-        acr = AcronymManager(ACR_DB_VERSION)
-        lpsn_conf: LPSNConf = create_lpsn_config()
-        tax = TaxonManager(conf.cache, lpsn_conf)
-        mem["man"] = {"acr": acr, "tax": tax}
-    return mem
 
 
 # runner
 
 
 async def run_resolution_async(
-    tasks: list[Task], memory: Memory, /
-) -> AsyncGenerator[Result]:
+    tasks: Sequence[Task], memory: Memory, /
+) -> Sequence[Result]:
     strain_queue: asyncio.Queue[int | None] = asyncio.Queue()
     ccnos = [ccno for task in tasks for ccno in task["ccnos"]]
     print(f"Matching started for {len(ccnos)} ccnos")
@@ -220,5 +192,9 @@ async def run_resolution_async(
         )
         await _get_strain_data(client, strain_queue, memory)
         await reader_task
-    for res in _create_results(tasks, memory):
-        yield res
+    res = list(_create_results(tasks, memory))
+    if len(memory["strains"]) >= 100_000:
+        memory["strains"] = {}
+    if len(memory["ccnos"]) >= 100_000:
+        memory["ccnos"] = {}
+    return res

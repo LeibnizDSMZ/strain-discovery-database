@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Leibniz Institute DSMZ-German Collection of Microorganisms and Cell Cultures GmbH
 #
 # SPDX-License-Identifier: MIT
-from strain_discovery_dataset.utils.run import get_log_file
+from strain_discovery_dataset.matching.memory import get_acr_man
 from requests_cache import Iterable
 
 from strain_discovery_dataset.utils.collections import (
@@ -17,18 +17,14 @@ from datetime import datetime
 import re
 from typing import Any
 from pydantic import HttpUrl
-from pydantic_core import ValidationError
-from saim.designation.manager import AcronymManager
 from saim.shared.parse.date import get_date
 from microbial_strain_data_model.strain import Strain
 from microbial_strain_data_model.classes.enums import ConcentrationUnit
-from strain_discovery_dataset.utils.data import ACR_DB_VERSION
 from strain_discovery_dataset.utils.seq import get_seq_acc
 from deepdiff import DeepHash
 
 _SEP = re.compile(r"[,;]+")
 _CAT = re.compile(r"^Curators of.+$")
-_ACR = AcronymManager(ACR_DB_VERSION)
 _CURRENT_DATE = datetime.now()
 _GROWTH = ["growth", "maximum", "minimum", "optimum"]
 _COLONY_COLORS = [
@@ -543,7 +539,7 @@ def strain_identifiers(input_data, out):
     ):
         if not isinstance(des, str) or des.strip() == "":
             continue
-        ana = _ACR.identify_ccno(des.strip())
+        ana = get_acr_man().identify_ccno(des.strip())
         if ana.designation == "":
             continue
         if ana.acr == "":
@@ -1130,21 +1126,23 @@ def collection(input_data):
                 continue
             ccnos = set(
                 des.designation
-                for des in _ACR.extract_all_valid_ccno_from_text(reference["catalogue"])
+                for des in get_acr_man().extract_all_valid_ccno_from_text(
+                    reference["catalogue"]
+                )
                 if des.acr != ""
             )
             if len(ccnos) != 1:
                 continue
             ccno = ccnos.pop()
             selected: AcrDbEntry | None = get_brc_from_string(
-                _ACR, ccno, reference["authors"]
+                get_acr_man(), ccno, reference["authors"]
             )
             if selected is None:
                 continue
-            yield create_collection_dict(_ACR, selected, ccno)
+            yield create_collection_dict(get_acr_man(), selected, ccno)
 
 
-def transform(bac_dive_data) -> Strain | None:
+def transform_bacdive(bac_dive_data) -> Strain | None:
 
     transformed_data: dict[str, Any] = {"version": 1}
     transformed_data["primaryId"] = f"BD-ID {bac_dive_data['General']['BacDive-ID']!s}"
@@ -1177,15 +1175,4 @@ def transform(bac_dive_data) -> Strain | None:
     transformed_data["metabolites"] = list(metabolic_data(bac_dive_data))
     transformed_data["collections"] = list(collection(bac_dive_data))
     # Validation
-    try:
-        return Strain.model_validate_json(json.dumps(transformed_data))
-    except ValidationError as e:
-        with get_log_file("bacdive_validation_errors").open("a") as log_file:
-            log_file.write(
-                f"Validation error for BacDive ID {bac_dive_data['General']['BacDive-ID']}:\n"
-            )
-            log_file.write(str(e) + "\n\n")
-        print(
-            f"BacDive Validation failed for ID {bac_dive_data['General']['BacDive-ID']}"
-        )
-        return None
+    return Strain.model_validate_json(json.dumps(transformed_data))
