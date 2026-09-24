@@ -42,7 +42,7 @@ def main():
     print(f"Start time: {start_time}")
 
     # Shared error flag (lightweight, no Manager needed)
-    error = ctx.Value(c_bool, False)
+    error = ctx.Value(c_bool, False,lock=False)
     file_lock = ctx.RLock()
 
     try:
