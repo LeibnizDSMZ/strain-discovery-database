@@ -47,7 +47,9 @@ async def _get_strain_ids(
                 if (des := acr.identify_ccno(ccno)).acr != ""
                 and (des.acr, des.id.pre, des.id.core, des.id.suf) not in memory["ccnos"]
             ]
-            url = f"{_BASE_URL}/search/strain/cc_no/{quote(','.join(batch), safe='')}"
+            url = (
+                f"{_BASE_URL}/search/strain/cc_no/{quote(','.join(batch), safe='')}?track"
+            )
             ids = await fetch_with_retry_async(client, url, {}, {}, contact)
             if isinstance(ids, list):
                 for sid in ids:
