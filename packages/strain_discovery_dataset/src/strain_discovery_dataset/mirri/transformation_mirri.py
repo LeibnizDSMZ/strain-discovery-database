@@ -1048,7 +1048,9 @@ def transform_mirri(mirri_data) -> Strain:
     taxon(mirri_data, transformed_data)
     if len(transformed_data["identifier"]) == 1:
         raise ValueError(
-            f"Only one identifier for MIRRI-ID {mirri_data.get('name', 'unknown')}"
+            "1 validation error for Strain\nidentifier\n"
+            + f"Only one identifier for MIRRI-ID {mirri_data.get('name', 'unknown')}"
+            + " [type=missing]"
         )
 
     # Optional
