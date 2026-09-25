@@ -12,7 +12,7 @@ _URL = "https://webservices.bio-aware.com/mirri_new/public/strains"
 _HEADERS = {"Accept": "application/links+json"}
 
 
-def mirri_get_all() -> Iterable[dict[str, Any]]:
+def mirri_get_all(contact) -> Iterable[dict[str, Any]]:
     page = 1
     seen_ids = set()
     page_size = 100
@@ -25,7 +25,7 @@ def mirri_get_all() -> Iterable[dict[str, Any]]:
     expected_entries = 1
     with httpx.Client(timeout=200) as client:
         while page_size * (page - 1) < expected_entries:
-            data = fetch_with_retry(client, _URL, _HEADERS, params)
+            data = fetch_with_retry(client, _URL, _HEADERS, params, contact)
             page += 1
             params["page"] = page
             if not isinstance(data, dict):
@@ -52,17 +52,3 @@ def mirri_get_all() -> Iterable[dict[str, Any]]:
             )
             if len(new_items) < page_size:
                 break
-
-
-def mirri_get_one(strain_id) -> dict | None:
-    one_url = f"{_URL}/{strain_id}"
-
-    with httpx.Client(timeout=100) as client:
-        data = fetch_with_retry(client, one_url, _HEADERS, {})
-
-    if data is None:
-        print("API response is not 200")
-        return None
-
-    # pyrefly: ignore [bad-return]
-    return data

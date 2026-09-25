@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Leibniz Institute DSMZ-German Collection of Microorganisms and Cell Cultures GmbH
-# SPDX-FileCopyrightText: 2026 Leibniz Institute DSMZ‑German Collection of Microorganisms and Cell Cultures GmbH
 #
 # SPDX-License-Identifier: MIT
 
+import argparse
 from microbial_strain_data_model.strain import Strain
 import datetime
 import multiprocessing
@@ -25,6 +25,27 @@ from strain_discovery_dataset.runtime.closable_queue import ClosableQueue
 from strain_discovery_dataset.utils.run import get_log_file
 
 
+def _valid_email(value: str) -> str:
+    if "@" not in value or "." not in value.split("@")[-1]:
+        raise argparse.ArgumentTypeError(f"{value!r} is not a valid email address")
+    return value
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Run the strain discovery dataset pipeline."
+    )
+    parser.add_argument(
+        "--contact-email",
+        "-e",
+        type=_valid_email,
+        required=True,
+        dest="email",
+        help="Contact email sent along with API requests",
+    )
+    return parser.parse_args()
+
+
 def set_up_logs() -> None:
     date = datetime.datetime.now()
     for log_name in [
@@ -44,6 +65,7 @@ def set_up_logs() -> None:
 def main() -> None:
     ctx: SpawnContext = multiprocessing.get_context("spawn")
     start_time = datetime.datetime.now()
+    args = parse_args()
     print(f"Start time: {start_time}")
 
     file_lock = ctx.RLock()
@@ -56,9 +78,15 @@ def main() -> None:
     queue_si: ClosableQueue[tuple[str, Strain]] = ClosableQueue(ctx, 1)
 
     processes = [
-        ctx.Process(target=FetchDsmz(file_lock, queue_dsmz).run, name="FetchDsmz"),
-        ctx.Process(target=FetchMirri(file_lock, queue_mirri).run, name="FetchMirri"),
-        ctx.Process(target=FetchBacDive(file_lock, queue_bac).run, name="FetchBacDive"),
+        ctx.Process(
+            target=FetchDsmz(file_lock, queue_dsmz, args.email).run, name="FetchDsmz"
+        ),
+        ctx.Process(
+            target=FetchMirri(file_lock, queue_mirri, args.email).run, name="FetchMirri"
+        ),
+        ctx.Process(
+            target=FetchBacDive(file_lock, queue_bac, args.email).run, name="FetchBacDive"
+        ),
         ctx.Process(
             target=TransformDsmz(file_lock, queue_dsmz, queue_strain).run,
             name="TransformDsmz",
@@ -72,7 +100,7 @@ def main() -> None:
             name="TransformBacDive",
         ),
         ctx.Process(
-            target=StrainInfo(file_lock, queue_strain, queue_si).run,
+            target=StrainInfo(file_lock, queue_strain, queue_si, args.email).run,
             name="StrainInfo",
         ),
         ctx.Process(target=SaimSink(file_lock, queue_si).run, name="SaimSink"),

@@ -191,10 +191,11 @@ class ResData:
 def process_resolution_results(
     run_tasks: SequenceT[Task],
     memory: Memory,
+    contact: str,
     /,
 ) -> Iterable[ResultSI]:
     start_time = time.time()
-    for result in asyncio.run(run_resolution_async(run_tasks, memory)):
+    for result in asyncio.run(run_resolution_async(run_tasks, memory, contact)):
         print(f"\rRESULT: {result['id']}{' ' * 20}", end="")
 
         si_strain = result["best_match_si_id"]

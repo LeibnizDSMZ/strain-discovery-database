@@ -60,7 +60,8 @@ update_changelog_on_bump = true
 version_files = [
   "README.md:^\\[!\\[release:",
   "packages/strain_discovery_dataset/pyproject.toml",
-  "packages/strain_discovery_docs/package.json",
+  "packages/strain_discovery_dataset/pyproject.toml",
+  "packages/strain_discovery_dataset/src/strain_discovery_dataset/utils/constants.py:^VERSION",
 ]
 version_provider = "uv"
 version_type = "semver"

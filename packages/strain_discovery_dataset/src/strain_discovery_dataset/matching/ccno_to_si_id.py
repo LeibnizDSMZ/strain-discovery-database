@@ -35,6 +35,7 @@ async def _get_strain_ids(
     ccnos: list[str],
     queue: asyncio.Queue[int | None],
     memory: Memory,
+    contact: str,
     /,
 ) -> None:
     acr = memory["man"]["acr"]
@@ -47,7 +48,7 @@ async def _get_strain_ids(
                 and (des.acr, des.id.pre, des.id.core, des.id.suf) not in memory["ccnos"]
             ]
             url = f"{_BASE_URL}/search/strain/cc_no/{quote(','.join(batch), safe='')}"
-            ids = await fetch_with_retry_async(client, url, {}, {})
+            ids = await fetch_with_retry_async(client, url, {}, {}, contact)
             if isinstance(ids, list):
                 for sid in ids:
                     await queue.put(sid)
@@ -57,10 +58,10 @@ async def _get_strain_ids(
 
 
 async def _request_max_strain_data(
-    client: httpx.AsyncClient, req: list[int], /
+    client: httpx.AsyncClient, req: list[int], contact: str, /
 ) -> list[StrainMaxRecord]:
     url = f"{_BASE_URL}/data/strain/max/{','.join(map(str, req))}"
-    data = await fetch_with_retry_async(client, url, {}, {})
+    data = await fetch_with_retry_async(client, url, {}, {}, contact)
     if isinstance(data, list):
         return data
     print(f"url issues {url}")
@@ -84,16 +85,21 @@ async def _get_strain_data(
     client: httpx.AsyncClient,
     queue: asyncio.Queue[int | None],
     memory: Memory,
+    contact: str,
     /,
 ) -> None:
     buffer: list[int] = []
     while (sid := await queue.get()) is not None:
         buffer.append(sid)
         if len(buffer) >= _MAX_BATCH_SIZE:
-            _add_record_to_memory(await _request_max_strain_data(client, buffer), memory)
+            _add_record_to_memory(
+                await _request_max_strain_data(client, buffer, contact), memory
+            )
             buffer.clear()
     if buffer:
-        _add_record_to_memory(await _request_max_strain_data(client, buffer), memory)
+        _add_record_to_memory(
+            await _request_max_strain_data(client, buffer, contact), memory
+        )
 
 
 # vote best matching strain
@@ -184,17 +190,17 @@ def _create_results(tasks: Sequence[Task], memory: Memory, /) -> Iterable[Result
 
 
 async def run_resolution_async(
-    tasks: Sequence[Task], memory: Memory, /
+    tasks: Sequence[Task], memory: Memory, contact: str, /
 ) -> Sequence[Result]:
     strain_queue: asyncio.Queue[int | None] = asyncio.Queue()
     ccnos = [ccno for task in tasks for ccno in task["ccnos"]]
     print(f"Matching started for {len(ccnos)} ccnos")
     async with httpx.AsyncClient(timeout=100) as client:
         reader_task = asyncio.create_task(
-            _get_strain_ids(client, ccnos, strain_queue, memory)
+            _get_strain_ids(client, ccnos, strain_queue, memory, contact)
         )
         consumer_task = asyncio.create_task(
-            _get_strain_data(client, strain_queue, memory)
+            _get_strain_data(client, strain_queue, memory, contact)
         )
         await asyncio.gather(reader_task, consumer_task, return_exceptions=True)
     res = list(_create_results(tasks, memory))
