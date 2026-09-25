@@ -16,7 +16,7 @@ from strain_discovery_dataset.runtime.closable_queue import ClosableQueue
 from microbial_strain_data_model.strain import Strain
 
 
-_BATCH_SIZE: Final[int] = 5_000
+_BATCH_SIZE: Final[int] = 1_000
 
 
 CACHE_STRAININFO = "straininfo"
