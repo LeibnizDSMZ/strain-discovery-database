@@ -30,6 +30,10 @@ _BASE_URL: Final[str] = "https://api.straininfo.dsmz.de/v2"
 _MAX_BATCH_SIZE: Final[int] = 100
 
 
+def _add_track(url: str) -> str:
+    return f"{url}?track"
+
+
 async def _get_strain_ids(
     client: httpx.AsyncClient,
     ccnos: list[str],
@@ -47,8 +51,8 @@ async def _get_strain_ids(
                 if (des := acr.identify_ccno(ccno)).acr != ""
                 and (des.acr, des.id.pre, des.id.core, des.id.suf) not in memory["ccnos"]
             ]
-            url = (
-                f"{_BASE_URL}/search/strain/cc_no/{quote(','.join(batch), safe='')}?track"
+            url = _add_track(
+                f"{_BASE_URL}/search/strain/cc_no/{quote(','.join(batch), safe='')}"
             )
             ids = await fetch_with_retry_async(client, url, {}, {}, contact)
             if isinstance(ids, list):
@@ -62,7 +66,7 @@ async def _get_strain_ids(
 async def _request_max_strain_data(
     client: httpx.AsyncClient, req: list[int], contact: str, /
 ) -> list[StrainMaxRecord]:
-    url = f"{_BASE_URL}/data/strain/max/{','.join(map(str, req))}"
+    url = _add_track(f"{_BASE_URL}/data/strain/max/{','.join(map(str, req))}")
     data = await fetch_with_retry_async(client, url, {}, {}, contact)
     if isinstance(data, list):
         return data
