@@ -23,18 +23,20 @@ CACHE_STRAININFO = "straininfo"
 
 
 class StrainInfo:
-    __slots__ = "__cache", "__lock", "__memory", "__queue_in", "__queue_out"
+    __slots__ = "__cache", "__contact", "__lock", "__memory", "__queue_in", "__queue_out"
 
     def __init__(
         self,
         lock: RLock,
         queue_in: ClosableQueue[tuple[str, Strain]],
         queue_out: ClosableQueue[tuple[str, Strain]],
+        contact: str,
     ) -> None:
         self.__queue_in = queue_in
         self.__queue_out = queue_out
         self.__cache = get_cache_dir().joinpath(CACHE_STRAININFO)
         self.__lock = lock
+        self.__contact = contact
         if self.__cache.exists() and self.__cache.is_file():
             raise FileExistsError(f"StrainInfo cache folder is a file {self.__cache!s}")
         if self.__cache.exists() and self.__cache.is_dir():
@@ -60,7 +62,7 @@ class StrainInfo:
                 orf.write(origin.model_dump_json())
 
     def __match(self, tasks: Sequence[Task], /) -> None:
-        for result in process_resolution_results(tasks, self._memory):
+        for result in process_resolution_results(tasks, self._memory, self.__contact):
             if result["matched"] is None:
                 self.__queue_out.put((result["source"], result["origin"]))
                 continue

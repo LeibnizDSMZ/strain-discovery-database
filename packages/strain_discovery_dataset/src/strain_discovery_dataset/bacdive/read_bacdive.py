@@ -45,14 +45,14 @@ def _get_bacdive_csv(client: Client, /) -> str:
     return csv_content
 
 
-def bacdive_get_all() -> Iterable[dict[str, Any]]:
+def bacdive_get_all(contact) -> Iterable[dict[str, Any]]:
     with httpx.Client(timeout=200) as client:
         csv_content = csv.reader(io.StringIO(_get_bacdive_csv(client)))
         ids = [row[0] for row in csv_content if len(row) > 0 and row[0].isdigit()]
         for req_id in chunked(ids, 20):
             print(f"\r[BD] {req_id[0]} - {len(req_id)}{' ' * 20}", end="")
             one_url = f"{_URL}/{';'.join(req_id)}"
-            data = fetch_with_retry(client, one_url, {}, {})
+            data = fetch_with_retry(client, one_url, {}, {}, contact)
             if not isinstance(data, dict):
                 continue
             res = data.get("results", None)
@@ -60,19 +60,3 @@ def bacdive_get_all() -> Iterable[dict[str, Any]]:
                 continue
             for strain in res.values():
                 yield strain
-
-
-def bacdive_get_one(strain_id, client):
-    one_url = f"{_URL}/{strain_id}"
-    data = fetch_with_retry(client, one_url, {}, {})
-
-    if not isinstance(data, dict):
-        return None
-
-    res = data.get("results", None)
-
-    if isinstance(res, dict) and res.get(strain_id):
-        return res.get(strain_id)
-    else:
-        print("No BacDive strain found for ID:", strain_id)
-        return None

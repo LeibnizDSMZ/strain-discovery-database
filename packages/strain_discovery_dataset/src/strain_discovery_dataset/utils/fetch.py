@@ -2,12 +2,21 @@
 #
 # SPDX-License-Identifier: MIT
 
+from strain_discovery_dataset.utils.constants import VERSION
 from time import sleep
 import asyncio
 import httpx
 from typing import Final
 
 MAX_REQUESTS_PER_SECOND: Final[int] = 10
+BOT_NAME: Final[str] = "strain-discovery-database"
+USER_AGENT: Final[str] = f"{BOT_NAME}-bot/{VERSION}"
+
+
+def get_user_agent(contact: str, /) -> str:
+    if contact == "":
+        return f"{USER_AGENT} (Python library)"
+    return f"{USER_AGENT} (Python library; {contact})"
 
 
 def fetch_with_retry(
@@ -15,13 +24,14 @@ def fetch_with_retry(
     url: str,
     headers: dict,
     params: dict,
+    contact: str,
     retries: int = 3,
     timeout: int = 200,
     /,
 ) -> list | dict | None:
-    head, para = None, None
+    head, para = {"User-Agent": get_user_agent(contact)}, None
     if headers:
-        head = headers
+        head = {**headers, **head}
     if params:
         para = params
     for attempt in range(retries):
@@ -51,13 +61,14 @@ async def fetch_with_retry_async(
     url: str,
     headers: dict,
     params: dict,
+    contact: str,
     retries: int = 3,
     timeout: int = 200,
     /,
 ) -> list | dict | None:
-    head, para = None, None
+    head, para = {"User-Agent": get_user_agent(contact)}, None
     if headers:
-        head = headers
+        head = {**headers, **head}
     if params:
         para = params
     for attempt in range(retries):

@@ -9,7 +9,7 @@ from strain_discovery_dataset.utils.fetch import fetch_with_retry
 URL = "https://api.strains.dsmz.de/strains"
 
 
-def dsmz_get_all():
+def dsmz_get_all(contact):
     page = 0
     page_size = 1000
     total_count = 1
@@ -17,7 +17,7 @@ def dsmz_get_all():
         while page * page_size < total_count:
             page += 1
             data = fetch_with_retry(
-                client, f"{URL}/?page={page}&page_size={page_size}", {}, {}
+                client, f"{URL}/?page={page}&page_size={page_size}", {}, {}, contact
             )
             if isinstance(data, dict):
                 total_count = data.get("meta", {}).get("totalCount", 0)

@@ -17,17 +17,19 @@ from typing import override
 
 
 class FetchData(ABC):
-    __slots__ = "__fih", "__lock", "__queue"
+    __slots__ = "__fih", "__lock", "__queue", "_contact"
 
     def __init__(
         self,
         lock: RLock,
         queue: ClosableQueue[dict[str, Any]],
+        contact: str,
         /,
     ) -> None:
         self.__queue = queue
         self.__lock = lock
         self.__fih = None
+        self._contact = contact
         super().__init__()
 
     @property
@@ -81,7 +83,7 @@ class FetchBacDive(FetchData):
 
     @override
     def _fetcher(self) -> Iterable[dict[str, Any]]:
-        for data in bacdive_get_all():
+        for data in bacdive_get_all(self._contact):
             yield data
 
 
@@ -93,7 +95,7 @@ class FetchMirri(FetchData):
 
     @override
     def _fetcher(self) -> Iterable[dict[str, Any]]:
-        for data in mirri_get_all():
+        for data in mirri_get_all(self._contact):
             if "error" in data:
                 self._write(f"{data['error']}\n")
                 continue
@@ -108,7 +110,7 @@ class FetchDsmz(FetchData):
 
     @override
     def _fetcher(self) -> Iterable[dict[str, Any]]:
-        for data in dsmz_get_all():
+        for data in dsmz_get_all(self._contact):
             if data is None:
                 self._write("DSMZ None strain\n")
                 continue
