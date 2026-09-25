@@ -1153,7 +1153,9 @@ def transform_bacdive(bac_dive_data) -> Strain:
     strain_identifiers(bac_dive_data, transformed_data)
     if len(transformed_data["identifier"]) == 1:
         raise ValueError(
-            f"Only one identifier for BD-ID {bac_dive_data['General']['BacDive-ID']}"
+            "1 validation error for Strain\nidentifier\n"
+            + f"Only one identifier for BD-ID {bac_dive_data['General']['BacDive-ID']}"
+            + " [type=missing]"
         )
 
     # Optional

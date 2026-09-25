@@ -72,7 +72,11 @@ def transform_dsmz(dsmz_data) -> Strain:
         for nam, val in ccno.values()
     ]
     if len(dsmz_data["identifier"]) == 0:
-        raise ValueError(f"NO IDENTIFIERS for {dsmz_data.get('primaryId')}")
+        raise ValueError(
+            "1 validation error for Strain\nidentifier\n"
+            + f"NO IDENTIFIERS for {dsmz_data.get('primaryId')}"
+            + " [type=missing]"
+        )
     for seq in dsmz_data.get("sequence", []):
         acc = seq.get("accessionNumber")
         if not acc:
