@@ -7,7 +7,7 @@ import asyncio
 import httpx
 from typing import Final
 
-MAX_REQUESTS_PER_SECOND: Final[int] = 40
+MAX_REQUESTS_PER_SECOND: Final[int] = 10
 
 
 def fetch_with_retry(
