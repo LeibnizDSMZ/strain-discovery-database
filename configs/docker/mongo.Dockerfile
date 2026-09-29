@@ -10,11 +10,11 @@ COPY ./bin/db/mongo_entry.sh /entry.sh
 COPY ./configs/db/mongo.conf ${INIT_MONGO_CONFIG}
 
 RUN dnf install -y shadow-utils bash \
-    && groupmod --gid ${USER_GID} mongodb \
-    && chown mongodb:mongodb ${INIT_MONGO_CONFIG} \
-    && mkdir /socket && chown mongodb:mongodb /socket \
-    && mkdir -p /var/log/mongodb && chown mongodb:mongodb /var/log/mongodb \
+    && groupmod --gid ${USER_GID} mongod \
+    && chown mongod:mongod ${INIT_MONGO_CONFIG} \
+    && mkdir /socket && chown mongod:mongod /socket \
+    && mkdir -p /var/log/mongodb && chown mongod:mongod /var/log/mongodb \
     && dnf clean all
 
-USER mongodb
+USER mongod
 ENTRYPOINT [ "/bin/bash", "/entry.sh" ]
