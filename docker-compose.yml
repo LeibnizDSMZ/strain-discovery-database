@@ -28,9 +28,9 @@ services:
       - mongo-sock:/mongo
       - sdd-data:/data
     environment:
-      MONGO_HOST: ${MONGO_HOST}
-      MONGO_PORT: ${MONGO_PORT}
-      MONGO_SOCKET: ${MONGO_SOCKET}
+      MONGO_HOST: mongo
+      MONGO_SOCKET: /mongo/mongod.sock
+      MONGO_PORT: 27017
       MONGO_SDD_USER: ${MONGO_SDD_USER}
       MONGO_SDD_PASSWORD_FILE: /run/secrets/mongo_sdd_password
       MONGO_SDD_DATABASE: ${MONGO_SDD_DATABASE}
@@ -60,7 +60,7 @@ services:
                     'mongosh',
                     '--eval',
                     "db.runCommand('ping').ok",
-                    'localhost:${MONGO_PORT}/test',
+                    'localhost:27017/test',
                     '--quiet',
                 ]
             interval: 15s
@@ -72,13 +72,12 @@ services:
             MONGO_SDD_USER: ${MONGO_SDD_USER}
             MONGO_SDD_PASSWORD_FILE: /run/secrets/mongo_sdd_password
             MONGO_SDD_DATABASE: ${MONGO_SDD_DATABASE}
-            MONGO_PORT: ${MONGO_PORT}
             INIT_MONGO_CONFIG: /etc/mongod.conf
         volumes:
             - mongo-data:/data/db
             - mongo-sock:/socket
         ports:
-            - ${MONGO_PORT}:${MONGO_PORT}
+            - ${MONGO_PORT}:27017
         networks:
             - strain_discovery_network
 
