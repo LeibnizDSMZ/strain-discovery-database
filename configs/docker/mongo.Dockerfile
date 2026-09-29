@@ -1,4 +1,4 @@
-FROM docker.io/mongodb/mongodb-community-server:8.0-ubuntu2204
+FROM docker.io/mongodb/mongodb-community-server:9.0-ubi9-slim
 
 ARG USER_GID=1001
 ARG INIT_MONGO_CONFIG=/etc/mongod.conf
