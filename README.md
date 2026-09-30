@@ -38,6 +38,8 @@ This project provides a robust pipeline for fetching, transforming, matching, an
 - **Docker** & **Docker Compose** installed
 - **RAM:** Minimum 32GB recommended (depends on data volume)
 - **Disk Space:** Sufficient space for database storage (depends on data volume)
+- **LPSN API Account**: Required for taxonomic name validation and LPSN ID resolution
+  - See the [LPSN API Registration Guide](https://LeibnizDSMZ.github.io/strain-discovery-database/lpsn_guide) for configuration details
 
 ## Installation
 
@@ -118,10 +120,8 @@ This will export results to `/data/output/<timestamp>/` within the container as 
 To view the generated statistics:
 
 ```bash
-# List output directories (shows timestamped runs)
 docker compose exec app ls /data/output/
 
-# View specific statistics file
 docker compose exec app cat /data/output/<timestamp>/taxa.csv
 ```
 
