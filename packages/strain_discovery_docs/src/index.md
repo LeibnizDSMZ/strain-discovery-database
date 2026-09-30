@@ -40,4 +40,4 @@ Because the entire framework is built around the [Microbial Strain Data Standard
 
 ---
 
-> **Note**: This project is a product of the Horizon Europe project [Bioindustry 4.0](https://www.bioindustry4.eu/) and supported by the [NFDI4Microbiota consortium](https://nfdi4microbiota.de/).
+> ✏️ **Note**: This project is a product of the Horizon Europe project [Bioindustry 4.0](https://www.bioindustry4.eu/) and supported by the [NFDI4Microbiota consortium](https://nfdi4microbiota.de/).
