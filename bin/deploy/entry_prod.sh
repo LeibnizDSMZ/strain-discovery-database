@@ -16,5 +16,5 @@ if [ "$SDD_UPDATE" = "true" ]; then
     echo "FINISHED"
 fi
 
-echo "To view statistics, you can run create_statistics"
+echo "To create statistics, you can run create_statistics"
 sleep infinity
