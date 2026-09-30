@@ -125,10 +125,13 @@ filters = [
 ]
 
 [[project.nav]]
-"Data Model" = "model.md"
-
-[[project.nav]]
-"Python project" = "structure.md"
+"LPSN Account" = "lpsn_guide.md"
 
 [[project.nav]]
 Configuration = "config.md"
+
+[[project.nav]]
+Database = "database.md"
+
+[[project.nav]]
+Statistics = "statistics.md"
