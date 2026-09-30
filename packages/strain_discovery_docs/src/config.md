@@ -33,7 +33,7 @@ The pipeline relies on environment variables to manage credentials, database con
    Set `SDD_UPDATE=false` to skip database initialization. Use this for:
 
    - Generating statistics
-   - Analyzing logs with `/evaluate_log.sh`
+   - Analyzing validation error logs with `/evaluate_log.sh`
 
 ## Security Best Practices
 
