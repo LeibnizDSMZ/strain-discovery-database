@@ -36,8 +36,10 @@ This project provides a robust pipeline for fetching, transforming, matching, an
 ## Prerequisites
 
 - **Docker** & **Docker Compose** installed
-- **RAM:** Minimum 32GB recommended (depends on data volume)
-- **Disk Space:** Sufficient space for database storage (depends on data volume)
+- **RAM:** Minimum 32GB recommended (depends on strain count)
+- **Disk Space:**
+  - Docker images: ~3 GB total (`mongo` ~1.3 GB, `app` ~1.7 GB)
+  - MongoDB database: < 1 GB
 - **LPSN API Account**: Required for taxonomic name validation and LPSN ID resolution
   - See the [LPSN API Registration Guide](https://LeibnizDSMZ.github.io/strain-discovery-database/lpsn_guide) for configuration details
 
