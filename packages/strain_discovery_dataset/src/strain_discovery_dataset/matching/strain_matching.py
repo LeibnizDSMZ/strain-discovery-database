@@ -217,6 +217,7 @@ def process_unresolved_results(
     data: Iterable[tuple[str, Strain]],
     /,
 ) -> Iterable[ResultSAIM]:
+    # WARNING: RACE CONDITION
     # Order of strains is not guaranteed, thus can lead to different results each run
     acr_man = memory["man"]["acr"]
     matcher, _ = match_factory(SaimMatchData, False, False)(
