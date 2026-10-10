@@ -49,6 +49,8 @@ def parse_args() -> argparse.Namespace:
 def set_up_logs() -> None:
     date = datetime.datetime.now()
     for log_name in [
+        "saim_errors",
+        "straininfo_errors",
         "bacdive_errors",
         "mirri_errors",
         "dsmz_errors",
