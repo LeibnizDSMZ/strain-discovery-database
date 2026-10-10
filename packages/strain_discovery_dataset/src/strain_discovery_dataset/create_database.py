@@ -24,7 +24,6 @@ from strain_discovery_dataset.runtime.fetch import (
     FetchMirri,
 )
 from strain_discovery_dataset.runtime.closable_queue import ClosableQueue
-from strain_discovery_dataset.utils.run import get_log_file
 from strain_discovery_dataset.runtime.read import ReadStrainInfo, ReadSaim
 from strain_discovery_dataset.runtime.merge import MergeSink
 
@@ -48,24 +47,6 @@ def _parse_args() -> argparse.Namespace:
         help="Contact email sent along with API requests",
     )
     return parser.parse_args()
-
-
-def _set_up_logs() -> None:
-    date = datetime.datetime.now()
-    for log_name in [
-        "saim_errors",
-        "straininfo_errors",
-        "bacdive_errors",
-        "mirri_errors",
-        "dsmz_errors",
-        "merge_errors",
-        "mirri_validation_errors",
-        "bacdive_validation_errors",
-        "dsmz_validation_errors",
-        "numbers",
-    ]:
-        with get_log_file(log_name).open("w", encoding="utf-8") as f:
-            f.write(f"Date: {date}\n")
 
 
 def _wrap_processes(
@@ -183,7 +164,6 @@ def main() -> None:
     print(f"Start time: {start_time}")
 
     file_lock = ctx.RLock()
-    _set_up_logs()
 
     # Run data collection (fetch, transform, straininfo, saim)
     _run_data_collection(ctx, file_lock, args.email)

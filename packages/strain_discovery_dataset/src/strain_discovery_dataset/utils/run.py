@@ -37,5 +37,8 @@ def get_log_file(log_id: str, /) -> Path:
     output_path = output_path.joinpath(_IMPORT_TIME, "logs")
     output_path.mkdir(exist_ok=True, parents=True)
     log_path = output_path.joinpath(f"{log_id}.log")
+    if not log_path.exists():
+        with log_path.open("w", encoding="utf-8") as flog:
+            flog.write(f"Date: {_IMPORT_TIME}\n")
     _LOG_FILES[log_id] = log_path
     return log_path
