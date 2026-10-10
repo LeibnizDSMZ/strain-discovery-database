@@ -21,7 +21,7 @@ from strain_discovery_dataset.utils.run import get_cache_dir
 
 
 class ReadData(ABC):
-    __slots__ = "__cache", "__fih", "__lock", "__queue", "_reader_name"
+    __slots__ = "__cache", "__fih", "__lock", "__queue"
 
     def __init__(
         self,
