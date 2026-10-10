@@ -43,7 +43,8 @@ class MergeSink:
 
     def _join(self, pri: str, strains: Sequence[Strain], /) -> None:
         merged_strain = strains[0]
-        merged_strain.primaryId = pri
+        if len(strains) > 1:
+            merged_strain.primaryId = pri
 
         # Join remaining strains onto core
         for strain in strains[1:]:
