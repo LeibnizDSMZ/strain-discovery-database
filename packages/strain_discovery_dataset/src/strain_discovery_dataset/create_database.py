@@ -160,9 +160,7 @@ def _run_cache_merge(ctx: SpawnContext, lock: RLock, /) -> None:
     num_join = max(1, multiprocessing.cpu_count() // 2)
 
     # Create queue for merge input (sized for readers + merge processes)
-    queue_merge: ClosableQueue[tuple[str, Sequence[Strain]]] = ClosableQueue(
-        ctx, num_join + 2
-    )
+    queue_merge: ClosableQueue[tuple[str, Sequence[Strain]]] = ClosableQueue(ctx, 2)
 
     # Start reader processes
     readers = [

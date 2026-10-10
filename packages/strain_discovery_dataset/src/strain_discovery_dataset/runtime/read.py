@@ -14,14 +14,13 @@ from strain_discovery_dataset.utils.run import get_log_file
 from strain_discovery_dataset.runtime.closable_queue import ClosableQueue
 from collections.abc import Iterable
 from pathlib import Path
-import json
 from microbial_strain_data_model.strain import Strain
 
 from strain_discovery_dataset.utils.run import get_cache_dir
 
 
 class ReadData(ABC):
-    __slots__ = "__cache", "__fih", "__lock", "__queue"
+    __slots__ = "__fih", "__lock", "__queue", "_ca_dir"
 
     def __init__(
         self,
@@ -32,7 +31,7 @@ class ReadData(ABC):
         self.__queue = queue
         self.__lock = lock
         self.__fih = None
-        self.__cache: Path | None = None
+        self._ca_dir: Path | None = None
         super().__init__()
 
     @property
@@ -62,8 +61,8 @@ class ReadData(ABC):
             for str_data in str_con.iterdir():
                 try:
                     with str_data.open() as fst:
-                        data = json.load(fst)
-                        strain = Strain.model_validate(data)
+                        data = fst.read()
+                        strain = Strain.model_validate_json(data)
                         strains.append(strain)
                 except Exception as err:
                     self._write(f"Error reading {str_data}: {err}\n")
@@ -105,9 +104,9 @@ class ReadStrainInfo(ReadData):
     @property
     @override
     def _cache(self) -> Path:
-        if self.__cache is None:
-            self.__cache = get_cache_dir().joinpath(CACHE_STRAININFO)
-        return self.__cache
+        if self._ca_dir is None:
+            self._ca_dir = get_cache_dir().joinpath(CACHE_STRAININFO)
+        return self._ca_dir
 
 
 class ReadSaim(ReadData):
@@ -119,6 +118,6 @@ class ReadSaim(ReadData):
     @property
     @override
     def _cache(self) -> Path:
-        if self.__cache is None:
-            self.__cache = get_cache_dir().joinpath(CACHE_SAIM)
-        return self.__cache
+        if self._ca_dir is None:
+            self._ca_dir = get_cache_dir().joinpath(CACHE_SAIM)
+        return self._ca_dir
