@@ -2,6 +2,14 @@
 #
 # SPDX-License-Identifier: MIT
 
+"""Confusion matrix analysis for strain prediction.
+
+WARNING: This module only works correctly for recrafting strains from a single source.
+When multiple sources are involved, statistics are corrupted because two strains from
+different sources could be the same, but only one is selected as the truth for
+the strain container. This leads to inaccurate accuracy metrics.
+"""
+
 from collections import Counter
 from microbial_strain_data_model.strain import Strain
 from collections.abc import Sequence

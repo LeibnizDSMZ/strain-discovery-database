@@ -2,6 +2,14 @@
 #
 # SPDX-License-Identifier: MIT
 
+"""Create confusion matrix for strain prediction analysis.
+
+WARNING: The underlying confusion.py module only works correctly for recrafting strains
+from a single source. When multiple sources are involved, statistics are corrupted
+because two strains from different sources could be the same, but only one is selected
+as the truth for the strain container. This leads to inaccurate accuracy metrics.
+"""
+
 from strain_discovery_dataset.runtime.confusion import ConfusionSink
 from strain_discovery_dataset.utils.process import wrap_processes
 from strain_discovery_dataset.runtime.split import SplitData
