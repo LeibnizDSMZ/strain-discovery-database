@@ -72,12 +72,13 @@ _ID = re.compile(r"^(.+)_(\d+)_(\d+)$")
 
 
 class ConfusionSink:
-    __slots__ = "__ca_ids", "__ca_str", "__fih", "__lock", "__queue"
+    __slots__ = "__ca_ids", "__ca_str", "__fih", "__lock", "__min_size", "__queue"
 
     def __init__(
         self,
         lock: RLock,
         queue: ClosableQueue[tuple[str, Sequence[Strain]]],
+        min_size: int = 1,
         /,
     ) -> None:
         self.__queue = queue
@@ -85,6 +86,7 @@ class ConfusionSink:
         self.__fih = None
         self.__ca_ids: set[str] = set()
         self.__ca_str: dict[int, dict[str, list[str]]] = {}
+        self.__min_size = min_size
         super().__init__()
 
     @property
@@ -100,6 +102,8 @@ class ConfusionSink:
             if mat is None:
                 continue
             siz = int(mat.group(3))
+            if siz < self.__min_size:
+                continue
             if siz not in self.__ca_str:
                 self.__ca_str[siz] = {}
             if mat.group(1) not in self.__ca_str[siz]:

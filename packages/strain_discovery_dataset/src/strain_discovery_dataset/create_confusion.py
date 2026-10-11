@@ -44,6 +44,14 @@ def _parse_args() -> argparse.Namespace:
         dest="email",
         help="Contact email sent along with API requests",
     )
+    parser.add_argument(
+        "--min-size",
+        "-l",
+        type=int,
+        default=1,
+        dest="min_size",
+        help="Minimum strain size to include in confusion matrix analysis",
+    )
     return parser.parse_args()
 
 
@@ -79,7 +87,7 @@ def _run_data_collection(ctx: SpawnContext, lock: RLock, email: str, /) -> None:
     wrap_processes(all_processes, all_queues)
 
 
-def _run_cache_merge(ctx: SpawnContext, lock: RLock, /) -> None:
+def _run_cache_merge(ctx: SpawnContext, lock: RLock, min_size: int, /) -> None:
 
     # Create queue for merge input (sized for readers + merge processes)
     queue_statistic: ClosableQueue[tuple[str, Sequence[Strain]]] = ClosableQueue(ctx, 2)
@@ -90,7 +98,8 @@ def _run_cache_merge(ctx: SpawnContext, lock: RLock, /) -> None:
         ),
         ctx.Process(target=ReadSaim(lock, queue_statistic).run, name="ReadSaim"),
         ctx.Process(
-            target=ConfusionSink(lock, queue_statistic).run, name="ConfusionSink"
+            target=ConfusionSink(lock, queue_statistic, min_size).run,
+            name="ConfusionSink",
         ),
     ]
 
@@ -109,7 +118,7 @@ def main() -> None:
     _run_data_collection(ctx, file_lock, args.email)
 
     # Run cache merge (read cached data and write to MongoDB)
-    _run_cache_merge(ctx, file_lock)
+    _run_cache_merge(ctx, file_lock, args.min_size)
 
     end_time = datetime.datetime.now()
     print(f"\nDuration: {end_time - start_time}\n")
