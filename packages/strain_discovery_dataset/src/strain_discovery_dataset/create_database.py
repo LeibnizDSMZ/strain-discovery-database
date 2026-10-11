@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
+from strain_discovery_dataset.utils.process import wrap_processes
 from multiprocessing.synchronize import RLock
 from typing import Sequence
 import argparse
@@ -49,53 +50,7 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _wrap_processes(
-    all_processes: Sequence[multiprocessing.context.SpawnProcess],
-    all_queues: Sequence[ClosableQueue[Any]],
-    /,
-) -> None:
-    try:
-        for pro in all_processes:
-            pro.start()
-            print(f"\nStarted process: {pro.name}\n")
-
-        error_broadcasted = False
-        alive = len(all_processes)
-        while not error_broadcasted and alive > 0:
-            alive = len(all_processes)
-            for idx, pro in enumerate(all_processes):
-                print(
-                    f"\rJoining process {idx + 1}/{len(all_processes)} {pro.name}{' ' * 10}",
-                    end="",
-                )
-                pro.join(timeout=1.5)
-                alive -= 0 if pro.is_alive() else 1
-                if error_broadcasted:
-                    continue
-
-                if any(que.has_error() for que in all_queues):
-                    print("\nDetected an error broadcasting shutdown\n")
-                    for pro in all_processes:
-                        if pro.is_alive():
-                            pro.terminate()
-                    error_broadcasted = True
-
-        for pro in all_processes:
-            if pro.is_alive():
-                print(f"\nWaiting for {pro.name} to finish (no timeout)...\n")
-                pro.join()
-            print(f"\nJoined - {pro.name}\n")
-
-    except Exception as exc:
-        print(f"\nMain process raised an exception: {exc!r}\n")
-        for pro in all_processes:
-            if pro.is_alive():
-                pro.terminate()
-        raise
-
-
 def _run_data_collection(ctx: SpawnContext, lock: RLock, email: str, /) -> None:
-    """Run data collection: fetch, transform, straininfo, saim."""
     queue_bac: ClosableQueue[dict[str, Any]] = ClosableQueue(ctx, 1)
     queue_dsmz: ClosableQueue[dict[str, Any]] = ClosableQueue(ctx, 1)
     queue_mirri: ClosableQueue[dict[str, Any]] = ClosableQueue(ctx, 1, 10_000)
@@ -132,13 +87,10 @@ def _run_data_collection(ctx: SpawnContext, lock: RLock, email: str, /) -> None:
         queue_strain,
         queue_si,
     ]
-    _wrap_processes(all_processes, all_queues)
+    wrap_processes(all_processes, all_queues)
 
 
 def _run_cache_merge(ctx: SpawnContext, lock: RLock, /) -> None:
-
-    # Calculate number of merge processes (half of CPU or at least 1)
-    num_join = max(1, multiprocessing.cpu_count() // 2)
 
     # Create queue for merge input (sized for readers + merge processes)
     queue_merge: ClosableQueue[tuple[str, Sequence[Strain]]] = ClosableQueue(ctx, 2)
@@ -152,9 +104,9 @@ def _run_cache_merge(ctx: SpawnContext, lock: RLock, /) -> None:
     # Start merge processes
     all_processes = readers + [
         ctx.Process(target=MergeSink(lock, queue_merge).run, name="MergeSink")
-        for _ in range(num_join)
+        for _ in range(max(1, multiprocessing.cpu_count() // 2))
     ]
-    _wrap_processes(all_processes, [queue_merge])
+    wrap_processes(all_processes, [queue_merge])
 
 
 def main() -> None:
