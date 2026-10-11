@@ -118,8 +118,10 @@ class ConfusionSink:
         try:
             for pri_id, strains in self.__queue.get():
                 self._process(pri_id, strains)
-            total, matrix = _create_confusion_matrix(
-                self.__ca_str, _assign_tag(self.__ca_str, self.__ca_ids)
+            total, matrix = _confusion_report(
+                _create_confusion_matrix(
+                    self.__ca_str, _assign_tag(self.__ca_str, self.__ca_ids)
+                )
             )
         except ValueError:
             pass
