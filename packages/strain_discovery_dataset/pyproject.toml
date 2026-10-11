@@ -33,3 +33,4 @@ default-groups = []
 [project.scripts]
 create_database = "strain_discovery_dataset.create_database:main"
 create_statistics = "strain_discovery_dataset.create_statistics:main"
+create_confusion = "strain_discovery_dataset.create_confusion:main"
