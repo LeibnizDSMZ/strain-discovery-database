@@ -30,8 +30,8 @@ FROM docker.io/almalinux:10 AS main
 
 ARG USERNAME=runner
 ARG USER_UID=1001
-ARG USER_GID=${USER_UID}
-ARG HOME_MAIN="/home/${USERNAME}"
+ARG USER_GID=1001
+ARG HOME_MAIN="/home/runner"
 ARG BIN_DEPLOY_ENTRY_PROD
 ARG BIN_DEPLOY_HEALTH
 ARG BIN_EVALUATE_LOG
@@ -39,20 +39,13 @@ ARG NODE_VERSION
 
 RUN dnf clean all && dnf install -y bash
 
-RUN userdel -r ${USERNAME} 2>/dev/null || true
-RUN groupdel ${USERNAME} 2>/dev/null || true
-RUN groupadd --gid ${USER_GID} ${USERNAME}
-RUN useradd --uid ${USER_UID} --gid ${USER_GID} -m -d ${HOME_MAIN} ${USERNAME}
-RUN mkdir -p "${HOME_MAIN}/.local/bin" \
-    && chown ${USERNAME}:${USERNAME} -R ${HOME_MAIN} && \
-    mkdir -p /data/cache && mkdir -p /data/output && \
-    chown ${USERNAME}:${USERNAME} -R /data/
-
 ARG BIN_DEPLOY_PREP
 ARG BIN_DEPLOY_REQ
+ARG BIN_DEPLOY_USER
 
 COPY ./${BIN_DEPLOY_PREP} /prep.sh
 COPY ./${BIN_DEPLOY_REQ} /req.sh
+COPY ./${BIN_DEPLOY_USER} /user.sh
 
 COPY --from=appbuilder /tmp/app/dist /tmp/build
 COPY ./${BIN_DEPLOY_ENTRY_PROD} /entry.sh
@@ -62,6 +55,10 @@ COPY ./${BIN_EVALUATE_LOG} /evaluate_log.sh
 WORKDIR /tmp/build
 RUN bash /prep.sh && rm /prep.sh
 RUN bash /req.sh && rm /req.sh
+RUN bash /user.sh && rm /user.sh
+
+RUN mkdir -p /data/cache && mkdir -p /data/output && \
+    chown ${USERNAME}:${USERNAME} -R /data/
 
 HEALTHCHECK --interval=5m --timeout=3s CMD /health.sh
 
