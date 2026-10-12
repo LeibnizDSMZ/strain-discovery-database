@@ -12,5 +12,5 @@ while [ ! -e "/socket/mongodb-27017.sock" ]; do
     sleep 1
 done
 
-chown mongodb:mongodb "/socket/mongodb-27017.sock"
+chown mongod:mongod "/socket/mongodb-27017.sock"
 sleep infinity
