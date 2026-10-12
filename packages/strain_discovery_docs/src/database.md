@@ -39,7 +39,7 @@ strain_discovery_dataset_2024_01_17_14_45
 |-----------|---------------------|---------|
 | Host | `MONGO_HOST` | `localhost` |
 | Port | `MONGO_PORT` | `27017` |
-| Socket | `MONGO_SOCKET` | `/mongo/mongod.sock` |
+| Socket | `MONGO_SOCKET` | `/mongo/mongodb-27017.sock` |
 | User | `MONGO_SDD_USER` | (required) |
 | Password | `MONGO_SDD_PASSWORD` | (required) |
 | Database | `MONGO_SDD_DATABASE` | `strain_discovery_database` |

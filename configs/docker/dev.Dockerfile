@@ -3,8 +3,8 @@ FROM docker.io/almalinux:10
 ARG UV
 ARG PNPM
 ARG USERNAME=devu
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+ARG USER_UID=1001
+ARG USER_GID=1001
 ARG WORK_DIR=/workspace
 ENV HOME_MAIN="/home/${USERNAME}"
 ENV PATH="${HOME_MAIN}/.local/bin:${WORK_DIR}/${UV}:${WORK_DIR}/${PNPM}:${PATH}"
@@ -16,11 +16,8 @@ ENV HISTFILESIZE=0
 ARG NODE_VERSION
 ARG BIN_DEPLOY_PREP
 ARG BIN_DEPLOY_REQ
+ARG BIN_DEPLOY_USER
 ARG BIN_DEPLOY_ENTRY_DEV
-
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd -m -d $HOME_MAIN \
-    --uid $USER_UID --gid $USER_GID $USERNAME
 
 COPY . /tmp/app
 
@@ -29,21 +26,14 @@ WORKDIR /tmp/app
 COPY ./${BIN_DEPLOY_ENTRY_DEV} /entry_dev.sh
 
 RUN dnf clean all && dnf install -y bash
-RUN bash "./${BIN_DEPLOY_PREP}" && bash "./${BIN_DEPLOY_REQ}"
+RUN bash "./${BIN_DEPLOY_PREP}" && bash "./${BIN_DEPLOY_REQ}" && bash "./${BIN_DEPLOY_USER}"
 
 WORKDIR /
 
 RUN rm -rf /tmp/app
 
-RUN userdel -r ${USERNAME} 2>/dev/null || true
-RUN groupdel ${USERNAME} 2>/dev/null || true
-RUN groupadd --gid ${USER_GID} ${USERNAME}
-RUN useradd --uid ${USER_UID} --gid ${USER_GID} -m -d ${HOME_MAIN} ${USERNAME}
-
-RUN mkdir -p ${WORK_DIR} && mkdir -p /var/www &&\
+RUN mkdir -p ${WORK_DIR} && \
     chown ${USERNAME}:${USERNAME} -R ${WORK_DIR} && \
-    chown ${USERNAME}:${USERNAME} -R ${HOME_MAIN} && \
-    chown ${USERNAME}:${USERNAME} -R /var/www && \
     mkdir -p /data/cache && mkdir -p /data/output && \
     chown ${USERNAME}:${USERNAME} -R /data/
 
