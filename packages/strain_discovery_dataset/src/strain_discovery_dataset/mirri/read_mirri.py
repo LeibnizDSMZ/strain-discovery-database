@@ -37,7 +37,7 @@ async def mirri_get_all() -> AsyncGenerator[dict[str, Any]]:
             new_items = data.get("items")
             expected_entries = int(data.get("count", 0))
             if not isinstance(new_items, list):
-                yield {"error": f"API response for mirri id {page - 1} has no items"}
+                yield {"error": f"API response for mirri page {page - 1} has no items"}
                 break
             for item in new_items:
                 item_id = item.get("id")
