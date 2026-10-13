@@ -4,23 +4,24 @@
 #
 # SPDX-License-Identifier: MIT
 
-# Check if file is provided
-if [ $# -eq 0 ]; then
+LOG_FILE="$1"
+
+if [ $# -eq 0 ] || [ ! -r "$LOG_FILE" ]; then
     echo "Usage: $0 <log_file>"
     exit 1
 fi
 
-LOG_FILE="$1"
-
-# Check if file exists and is readable
-if [ ! -f "$LOG_FILE" ] || [ ! -r "$LOG_FILE" ]; then
-    echo "Error: Cannot read file '$LOG_FILE'"
-    exit 1
-fi
-
-# Process the log file with awk
 awk '
-/^(Validation error for BacDive ID|Validation failed)/ {
+/Validation failed/ {
+    match($0, /Validation failed ([A-Z0-9]+)/, arr)
+    current_id = arr[1]
+    in_block = 1
+    next
+}
+
+/Validation error for BacDive ID/ {
+    match($0, /Validation error for BacDive ID ([0-9]+)/, arr)
+    current_id = arr[1]
     in_block = 1
     next
 }
@@ -31,21 +32,45 @@ in_block && /^[0-9]+[[:space:]]+validation/ {
 
 in_block && /^[a-zA-Z0-9._]+/ {
     path = $0
-    gsub(/^[[:space:]]+/, "", path)  # trim leading spaces
+    gsub(/^[[:space:]]+/, "", path)
 
+    # Normalize path
     if (path == "organismType") {
         normalized_path = "organismType"
     } else {
-        gsub(/[0-9]+/, "*", path)  # replace numbers with *
         normalized_path = path
+        gsub(/[0-9]+/, "*", normalized_path)
     }
 
     # Read next line for error type
     if ((getline next_line) > 0) {
         if (match(next_line, /type=([a-z_]+)/, arr)) {
-            print normalized_path "|" arr[1]
+            error_type = arr[1]
+            key = normalized_path "|" error_type
+
+            # Count total occurrences per pattern
+            counts[key]++
+
+            # Track unique IDs per pattern
+            if (!seen[key, current_id]++) {
+                unique_ids_per_pattern[key]++
+            }
+
+            # Track global unique strain IDs (across *all* patterns)
+            if (!global_seen[current_id]++) {
+                global_unique_count++
+            }
         }
     }
     next
 }
-' "$LOG_FILE" | sort | uniq -c | sort -nr
+END {
+    # Print per-pattern stats
+    for (key in counts) {
+        printf "%6d %s (affected strains: %d)\n", counts[key], key, unique_ids_per_pattern[key]
+    }
+
+    # Print grand total of unique strains affected by *any* error
+    printf "\nTotal unique strains affected by any validation error: %d\n", global_unique_count
+}
+' "$LOG_FILE" | sort -t' ' -k1 -nr
