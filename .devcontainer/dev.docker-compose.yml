@@ -37,12 +37,5 @@ services:
       - sdd-data:/data
     networks:
       - strain_discovery_network
-      - agent
     ports:
       - ${DOC_PORT}:8000
-
-networks:
-    agent:
-        external: true
-        name: agent
-        driver: bridge
