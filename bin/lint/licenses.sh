@@ -30,7 +30,6 @@ echo "COPYRIGHT is set: $COPYRIGHT"
 LICENSE_FILES=(
     "$ROOT/LICENSE"
     "$ROOT/LICENSES/$SOFTWARE_LIC.txt"
-    "$ROOT/configs/REUSE.toml"
     "$ROOT/.zensical.toml"
 )
 

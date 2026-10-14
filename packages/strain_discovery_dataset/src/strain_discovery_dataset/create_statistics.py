@@ -38,6 +38,11 @@ def _export_non_empty_to_csv(stats: Statistics, out_dir: Path) -> None:
             field_name = field.name
             field_data = getattr(stats.strains, field_name)
 
+            coverage = (
+                float(field_data.notEmpty.total) / float(stats.total) * 100
+                if stats.total > 0
+                else 0.0
+            )
             writer.writerow(
                 [
                     field_name,
@@ -46,7 +51,7 @@ def _export_non_empty_to_csv(stats: Statistics, out_dir: Path) -> None:
                     field_data.notEmpty.DSMZ,
                     field_data.notEmpty.StrainInfo,
                     field_data.notEmpty.total,
-                    float(field_data.notEmpty.total) / float(stats.total) * 100,
+                    coverage,
                     *[field_data.notEmpty.venn.get(key, 0) for key in venn_keys],
                 ]
             )
@@ -121,7 +126,7 @@ def _export_match_to_csv(stats: Statistics, out_dir: Path) -> None:
                     field_data.MIRRI,
                     field_data.DSMZ,
                     field_data.total,
-                    stats.total,
+                    stats.total if stats.total > 0 else 0,
                 ]
             )
 
@@ -161,6 +166,9 @@ def main():
     get_all_entries_count(stats_container, mongo_collection)
 
     output = create_run_config().output
+
+    if stats_container.total == 0:
+        print("Warning: No strains found in the database. Statistics will show 0 values.")
 
     _export_non_empty_to_csv(stats_container, output)
     _export_entries_to_csv(stats_container, output)

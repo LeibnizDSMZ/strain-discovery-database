@@ -16,11 +16,13 @@ services:
       args:
         USERNAME: devu
         USER_UID: 1000
-        USER_GID: 10500
+        USER_GID: 1000
+        SOCKET_GID: 10500
         WORK_DIR: "/workspace"
         NODE_VERSION: ${NODE_VERSION}
         BIN_DEPLOY_PREP: ${BIN_DEPLOY_PREP}
         BIN_DEPLOY_REQ: ${BIN_DEPLOY_REQ}
+        BIN_DEPLOY_USER: ${BIN_DEPLOY_USER}
         BIN_DEPLOY_HEALTH: ${BIN_DEPLOY_HEALTH}
         BIN_DEPLOY_ENTRY_PROD: ${BIN_DEPLOY_ENTRY_PROD}
         BIN_EVALUATE_LOG: ${BIN_EVALUATE_LOG}
@@ -28,9 +30,9 @@ services:
       - mongo-sock:/mongo
       - sdd-data:/data
     environment:
-      MONGO_HOST: ${MONGO_HOST}
-      MONGO_PORT: ${MONGO_PORT}
-      MONGO_SOCKET: ${MONGO_SOCKET}
+      MONGO_HOST: mongo
+      MONGO_SOCKET: /mongo/mongodb-27017.sock
+      MONGO_PORT: 27017
       MONGO_SDD_USER: ${MONGO_SDD_USER}
       MONGO_SDD_PASSWORD_FILE: /run/secrets/mongo_sdd_password
       MONGO_SDD_DATABASE: ${MONGO_SDD_DATABASE}
@@ -60,7 +62,7 @@ services:
                     'mongosh',
                     '--eval',
                     "db.runCommand('ping').ok",
-                    'localhost:${MONGO_PORT}/test',
+                    'localhost:27017/test',
                     '--quiet',
                 ]
             interval: 15s
@@ -72,13 +74,12 @@ services:
             MONGO_SDD_USER: ${MONGO_SDD_USER}
             MONGO_SDD_PASSWORD_FILE: /run/secrets/mongo_sdd_password
             MONGO_SDD_DATABASE: ${MONGO_SDD_DATABASE}
-            MONGO_PORT: ${MONGO_PORT}
             INIT_MONGO_CONFIG: /etc/mongod.conf
         volumes:
             - mongo-data:/data/db
             - mongo-sock:/socket
         ports:
-            - ${MONGO_PORT}:${MONGO_PORT}
+            - ${MONGO_PORT}:27017
         networks:
             - strain_discovery_network
 
@@ -99,4 +100,3 @@ networks:
     strain_discovery_network:
         name: strain_discovery_network
         driver: bridge
-        internal: true
