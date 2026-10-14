@@ -10,13 +10,13 @@ from typing import Final
 
 MAX_REQUESTS_PER_SECOND: Final[int] = 10
 BOT_NAME: Final[str] = "strain-discovery-database"
-USER_AGENT: Final[str] = f"{BOT_NAME}-bot/{VERSION}"
+USER_AGENT: Final[str] = f"{BOT_NAME}/{VERSION}"
 
 
 def get_user_agent(contact: str, /) -> str:
     if contact == "":
-        return f"{USER_AGENT} (Python library)"
-    return f"{USER_AGENT} (Python library; {contact})"
+        return USER_AGENT
+    return f"{USER_AGENT} ({contact})"
 
 
 def fetch_with_retry(
