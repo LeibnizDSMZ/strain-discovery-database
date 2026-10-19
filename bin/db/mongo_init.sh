@@ -85,4 +85,4 @@ while [ "$db_index" -lt "$#" ]; do
   db_index=$((db_index + 1))
 done
 
-echo "$MONGO_SCRIPT" | mongosh -u "$MONGODB_INITDB_ROOT_USERNAME" -p "$MONGODB_INITDB_ROOT_PASSWORD" --port "$MONGO_PORT"
+echo "$MONGO_SCRIPT" | mongosh -u "$MONGODB_INITDB_ROOT_USERNAME" -p "$MONGODB_INITDB_ROOT_PASSWORD"
