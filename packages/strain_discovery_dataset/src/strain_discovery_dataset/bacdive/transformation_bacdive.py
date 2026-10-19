@@ -936,10 +936,13 @@ def sequences(input_data):
     genome_seq = seq_in.get("Genome sequences")
     if genome_seq:
         for seq in _as_list(genome_seq):
+            seq_acc = seq.get("INSDC accession")
+            if seq_acc is None:
+                continue
             yield {
                 "type": "nucleotide",
                 "level": "genome",
-                "accessionNumber": get_seq_acc(seq.get("INSDC accession")),
+                "accessionNumber": get_seq_acc(seq_acc),
                 "description": seq.get("description"),
                 "length": get_seq_length(seq.get("length")),
                 "source": ["/sources/0"],
@@ -948,10 +951,13 @@ def sequences(input_data):
     sixteen_s = seq_in.get("16S sequences")
     if sixteen_s:
         for seq in _as_list(sixteen_s):
+            seq_acc = seq.get("accession")
+            if seq_acc is None:
+                continue
             yield {
                 "type": "nucleotide",
                 "level": "identifier sequence",
-                "accessionNumber": get_seq_acc(seq.get("accession")),
+                "accessionNumber": get_seq_acc(seq_acc),
                 "description": seq.get("description"),
                 "length": get_seq_length(seq.get("length")),
                 "source": ["/sources/0"],
