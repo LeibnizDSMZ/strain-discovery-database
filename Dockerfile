@@ -72,6 +72,6 @@ WORKDIR ${HOME_MAIN}
 
 RUN rm -rf  /tmp/build
 
-ENV PATH="${HOME_MAIN}/.local/bin:${PATH}"
+ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
 
 ENTRYPOINT ["/bin/sh", "/entry.sh"]
