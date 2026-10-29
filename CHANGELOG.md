@@ -4,6 +4,26 @@ SPDX-FileCopyrightText: 2026 Leibniz Institute DSMZ-German Collection of Microor
 SPDX-License-Identifier: CC0-1.0
 -->
 
+## v0.2.2 (2026-10-29)
+
+### Fix
+
+- verify bacdive sequences for none type
+- improve validation error count
+- **db**: add docker entrypoint script execution
+- **db**: correct mongodb owner in entry script
+- **docker**: switch MongoDB container user from mongodb to mongod
+- **docker**: change ubi9-slim to ubi9
+- **db**: resolve MongoDB init phase port mismatch
+- **network**: make strain_discovery_network externally accessible
+
+### Refactor
+
+- change mirri id to page
+- add 0 total guard
+- **cli**: update commit message prompt rules for stricter conventional commits adherence
+- **matching**: rename _request_avg_strain_data to _request_max_strain_data
+
 ## v0.2.1 (2026-07-17)
 
 ### Refactor
