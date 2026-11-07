@@ -85,7 +85,7 @@ def make_strain_info_strain(
                 mode=CurationMode("automated"),
                 name="StrainInfo",
                 url=HttpUrl(
-                    f"https://www.straininfo.dsmz.de/strain/{si_strain['siID']!s}"
+                    f"https://straininfo.dsmz.de/strain/{si_strain['siID']!s}"
                 ),
                 dateRecorded=Date(
                     _CURRENT_DATE.year, _CURRENT_DATE.month, _CURRENT_DATE.day
